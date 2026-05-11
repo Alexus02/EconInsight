@@ -1,0 +1,12 @@
+name = "econinsight-api"
+main = "src/index.js"
+compatibility_date = "2026-05-11"
+
+[[r2_buckets]]
+binding = "RESEARCH_BUCKET"
+bucket_name = "econ-insight-r2"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "econ-insight-d1"
+database_id = "60040923-eb74-4982-85bf-bfc62809d058"

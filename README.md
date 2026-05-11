@@ -1,16 +1,44 @@
-# React + Vite
+# EconInsight
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Cloudflare-first research platform with separated frontend and backend concerns.
 
-Currently, two official plugins are available:
+## Project layout
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `src/` - frontend React app (user site + host upload UI).
+- `backend/` - Cloudflare Worker API, R2 upload handling, D1 metadata storage.
 
-## React Compiler
+## Frontend setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+From repo root:
 
-## Expanding the ESLint configuration
+1. `npm install`
+2. Optional env values in `.env`:
+   - `VITE_API_BASE_URL` (example: `http://127.0.0.1:8787`)
+   - `VITE_HOST_PORTAL_TOKEN` (must match backend `HOST_PORTAL_TOKEN`)
+3. `npm run dev`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend routes
+
+- Public library: `/library` (read-only file feed for users)
+- Admin upload portal: `/internal-access-only` (host upload + file management view)
+
+## Backend setup (Cloudflare)
+
+In `backend/`:
+
+1. `npm install`
+2. Update `wrangler.toml` values:
+   - `bucket_name`
+   - `database_name`
+   - `database_id`
+3. Apply D1 schema:
+   - `npm run d1:migrate`
+4. Configure Worker secrets:
+   - `CF_ACCESS_TEAM_DOMAIN`
+   - `CF_ACCESS_AUDIENCE`
+   - `UPLOAD_SIGNING_SECRET`
+   - (optional) `HOST_PORTAL_TOKEN` (dev fallback)
+   - (optional) `R2_PUBLIC_BASE_URL` (only if serving directly from public R2 domain)
+5. `npm run dev`
+
+See `backend/README.md` for route details.

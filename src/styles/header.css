@@ -1,0 +1,133 @@
+ .site-header {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(248, 245, 239, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+.site-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111111;
+  text-decoration: none;
+  letter-spacing: -0.03em;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.menu-icon {
+  display: none;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+  border-radius: 12px;
+  color: #111111;
+  cursor: pointer;
+}
+
+.menu-icon__svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.22s ease;
+}
+
+.menu-icon--open .menu-icon__svg {
+  transform: scale(0.95);
+}
+
+.site-nav__link,
+.site-nav__cta {
+  text-decoration: none;
+}
+
+.site-nav__link {
+  color: #3d3d3d;
+  font-size: 0.95rem;
+  padding: 10px 16px;
+}
+.site-nav__link:hover{
+  color: #f8f5ef;
+  background-color:#3d3d3d ;
+  border-radius: 8px;
+}
+
+.site-nav__cta {
+  background: #111111;
+  color: #f8f5ef;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.16);
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    padding: 20px 0 22px;
+    align-items: flex-start;
+    position: sticky;
+  }
+
+  .site-nav {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% - 4px);
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-10px);
+    pointer-events: none;
+    margin-top: 0;
+    padding: 0 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+    background: rgba(248, 245, 239, 0.95);
+    transition: max-height 0.28s ease, opacity 0.2s ease, transform 0.24s ease, padding 0.2s ease;
+  }
+
+  .site-nav--open {
+    max-height: 320px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    padding: 10px 0 16px;
+  }
+
+  .site-nav .site-nav__link,
+  .site-nav .site-nav__cta {
+    display: block;
+    background: transparent;
+    width: 100%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .site-nav__cta {
+    box-shadow: none;
+    color: #111111;
+  }
+
+  .menu-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
+}

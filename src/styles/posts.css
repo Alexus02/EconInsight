@@ -1,0 +1,53 @@
+.posts-page {
+  display: grid;
+  gap: 16px;
+  padding: 24px 0 36px;
+}
+
+.posts-page__intro h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.04em;
+  margin-top: 6px;
+}
+
+.posts-kicker {
+  color: #8a857e;
+  font-size: 0.9rem;
+}
+
+.posts-state {
+  color: #56524d;
+}
+
+.posts-state--error {
+  color: #b42318;
+}
+
+.posts-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.post-card {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.post-card h2 {
+  font-size: 1.1rem;
+}
+
+.post-card p,
+.post-card__content {
+  color: #56524d;
+}
+
+.post-card__link {
+  font-weight: 700;
+  text-decoration: none;
+}

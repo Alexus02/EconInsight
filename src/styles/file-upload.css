@@ -1,0 +1,95 @@
+.upload-card {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 24px 50px rgba(17, 17, 17, 0.06);
+}
+
+.upload-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.upload-card h2,
+.upload-kicker {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.upload-kicker {
+  margin-bottom: 6px;
+  color: #8a857e;
+  font-size: 0.88rem;
+}
+
+.upload-limit {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(196, 32, 38, 0.08);
+  color: #9d1a20;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.upload-dropzone {
+  display: grid;
+  gap: 8px;
+  padding: 22px;
+  border: 1px dashed rgba(17, 17, 17, 0.2);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(196, 32, 38, 0.04), rgba(255, 255, 255, 0.95));
+}
+
+.upload-dropzone input {
+  width: 100%;
+}
+
+.upload-dropzone__title {
+  font-weight: 700;
+  color: #111111;
+}
+
+.upload-dropzone__hint,
+.upload-card__meta {
+  color: #67635c;
+}
+
+.upload-card__meta {
+  display: grid;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+.upload-state--info {
+  color: #2563eb;
+}
+
+.upload-state--error {
+  color: #b42318;
+}
+
+.upload-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  background: #111111;
+  color: #f8f5ef;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.upload-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .upload-card__header {
+    flex-direction: column;
+  }
+}

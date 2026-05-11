@@ -19,17 +19,10 @@ html {
 }
 
 body {
-  width: 100%;
+  min-width: 320px;
   min-height: 100vh;
   background: transparent;
-
-}
-
-/* enforce full-bleed layout: remove any browser defaults or stray spacing */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  color: #111111;
 }
 
 a {

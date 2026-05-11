@@ -1,0 +1,38 @@
+.library-page {
+  display: grid;
+  gap: 24px;
+  padding: 28px 0 36px;
+}
+
+.library-page__intro h1 {
+  max-width: 11ch;
+  margin: 10px 0 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.library-page__intro p {
+  max-width: 62ch;
+  color: #56524d;
+  line-height: 1.7;
+}
+
+.library-kicker {
+  color: #8a857e;
+  font-size: 0.9rem;
+}
+
+.library-layout {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .library-layout {
+    grid-template-columns: 1fr;
+  }
+}
