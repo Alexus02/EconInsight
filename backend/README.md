@@ -5,6 +5,7 @@ This folder contains the Cloudflare-first backend:
 - **Runtime:** Cloudflare Workers
 - **Object storage:** Cloudflare R2 (`RESEARCH_BUCKET`)
 - **Metadata DB:** Cloudflare D1 (`DB`)
+- **View tracking cache:** Cloudflare KV (`VIEWS_KV`)
 
 ### Routes
 
@@ -13,6 +14,22 @@ This folder contains the Cloudflare-first backend:
 - `POST /api/files` - saves uploaded file metadata (admin/host only).
 - `GET /api/files` - returns recent uploaded files for the public site.
 - `GET /api/files/object/:key` - serves a stored file through the Worker from private R2.
+- `POST /api/views` - records a view event for a post or file (increments KV counter).
+- `POST /api/admin/posts` - creates a post (admin/host only).
+- `GET /api/admin/posts` - retrieves all posts with stats (admin/host only).
+- `GET /api/posts` - returns published posts, optionally filtered by type (`?type=blog` or `?type=article`).
+
+### View Tracking System
+
+Views are tracked using a hybrid KV + D1 approach:
+
+1. **KV stores real-time counters** — every view increments a counter in KV (fast, edge-replicated).
+2. **Cron syncs to D1** — every 5 minutes, counters are written to D1 for persistent reporting.
+3. **GET endpoints return `viewCount`** — includes the synced value from D1.
+
+**Frontend:** Call `recordView(resourceType, resourceId)` when users view a post or download a file.
+
+**Backend:** See `recordView()` and `syncViewsToDatabase()` in `src/index.js`.
 
 ### Required secrets/vars
 

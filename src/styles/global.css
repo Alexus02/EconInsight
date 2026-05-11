@@ -7,10 +7,7 @@
 :root {
   color-scheme: light;
   font-family: 'Manrope', 'Segoe UI', sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(196, 32, 38, 0.12), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(17, 17, 17, 0.05), transparent 36%),
-    #f8f5ef;
+  background: #ffffff;
   color: #111111;
 }
 
@@ -21,7 +18,7 @@ html {
 body {
   min-width: 320px;
   min-height: 100vh;
-  background: transparent;
+  background: #ffffff;
   color: #111111;
 }
 

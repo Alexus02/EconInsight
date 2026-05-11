@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS uploaded_files (
   storage_key TEXT NOT NULL UNIQUE,
   content_type TEXT,
   file_size INTEGER,
+  view_count INTEGER DEFAULT 0,
   uploaded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS posts (
   article_storage_key TEXT,
   cover_image_url TEXT,
   author_id TEXT,
+  view_count INTEGER DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

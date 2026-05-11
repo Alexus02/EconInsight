@@ -39,11 +39,8 @@ const Header = () => {
 
       </button>
       <nav id="primary-navigation" className={`site-nav ${showMenu ? 'site-nav--open' : ''}`} aria-label="Primary navigation">
-        <Link to="/" className="site-nav__link" onClick={() => setShowMenu(false)}>
+        <Link to="/research" className="site-nav__link" onClick={() => setShowMenu(false)}>
           Research
-        </Link>
-        <Link to="/library" className="site-nav__link" onClick={() => setShowMenu(false)}>
-          Library
         </Link>
         <Link to="/articles" className="site-nav__link" onClick={() => setShowMenu(false)}>
           Articles

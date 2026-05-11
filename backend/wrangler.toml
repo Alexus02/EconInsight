@@ -10,3 +10,11 @@ bucket_name = "econ-insight-r2"
 binding = "DB"
 database_name = "econ-insight-d1"
 database_id = "60040923-eb74-4982-85bf-bfc62809d058"
+
+[[kv_namespaces]]
+binding = "VIEWS_KV"
+id = "your_kv_id_here"
+preview_id = "your_kv_preview_id_here"
+
+[triggers]
+crons = ["*/5 * * * *"]

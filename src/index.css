@@ -7,10 +7,7 @@
 :root {
   color-scheme: light;
   font-family: 'Manrope', 'Segoe UI', sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(196, 32, 38, 0.12), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(17, 17, 17, 0.05), transparent 36%),
-    #f8f5ef;
+  background: #ffffff;
   color: #111111;
 }
 
@@ -21,8 +18,7 @@ html {
 body {
   width: 100%;
   min-height: 100vh;
-  background: transparent;
-
+  background: #ffffff;
 }
 
 /* enforce full-bleed layout: remove any browser defaults or stray spacing */
@@ -45,4 +41,45 @@ button,
 input,
 textarea {
   font: inherit;
+}
+
+/* Button Styles */
+.button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.button--primary:hover {
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+.button--secondary {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.button--secondary:hover {
+  background: #667eea;
+  color: white;
+}
+
+.button--large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
 }

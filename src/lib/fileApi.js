@@ -15,6 +15,23 @@ function getHostHeaders() {
   }
 }
 
+export async function recordView(resourceType, resourceId) {
+  const response = await fetch(withBase('/api/views'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      resourceType,
+      resourceId,
+    }),
+  })
+
+  if (!response.ok) {
+    console.warn('Failed to record view:', response.statusText)
+  }
+}
+
 export async function requestPresignedUpload(file, uploaderId) {
   const response = await fetch(withBase('/api/admin/uploads/presign'), {
     method: 'POST',

@@ -182,6 +182,47 @@ function normalizePostStatus(status) {
   return status === 'published' ? 'published' : 'draft'
 }
 
+async function recordView(env, resourceType, resourceId) {
+  const key = `view:${resourceType}:${resourceId}`
+  const current = await env.VIEWS_KV.get(key)
+  const count = current ? parseInt(current, 10) + 1 : 1
+  await env.VIEWS_KV.put(key, String(count))
+}
+
+async function syncViewsToDatabase(env) {
+  const keys = await env.VIEWS_KV.list()
+  const updates = []
+
+  for (const { name } of keys.keys) {
+    const viewCount = await env.VIEWS_KV.get(name)
+    const [, resourceType, resourceId] = name.split(':')
+
+    if (!resourceType || !resourceId || !viewCount) {
+      continue
+    }
+
+    updates.push({ key: name, resourceType, resourceId, count: parseInt(viewCount, 10) })
+  }
+
+  if (updates.length === 0) {
+    return
+  }
+
+  for (const update of updates) {
+    const table = update.resourceType === 'post' ? 'posts' : 'uploaded_files'
+    const idColumn = update.resourceType === 'post' ? 'id' : 'id'
+    const whereColumn = update.resourceType === 'post' ? 'id' : 'id'
+
+    await env.DB.prepare(
+      `UPDATE ${table}
+       SET view_count = ?
+       WHERE ${whereColumn} = ?`
+    )
+      .bind(update.count, parseInt(update.resourceId, 10))
+      .run()
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = normalizeUrl(request.url)
@@ -298,6 +339,17 @@ export default {
         return jsonResponse({ message: 'Missing object key.' }, 400)
       }
 
+      // Record view for file access
+      const storageKeyMatch = await env.DB.prepare(
+        'SELECT id FROM uploaded_files WHERE storage_key = ?'
+      )
+        .bind(key)
+        .first()
+
+      if (storageKeyMatch) {
+        await recordView(env, 'file', String(storageKeyMatch.id))
+      }
+
       const object = await env.RESEARCH_BUCKET.get(key)
       if (!object) {
         return jsonResponse({ message: 'File not found.' }, 404)
@@ -315,6 +367,28 @@ export default {
       })
     }
 
+    if (request.method === 'POST' && url.pathname === '/api/views') {
+      let payload
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      const { resourceType, resourceId } = payload || {}
+
+      if (!resourceType || !resourceId) {
+        return jsonResponse({ message: 'resourceType and resourceId are required.' }, 400)
+      }
+
+      if (!['post', 'file'].includes(resourceType)) {
+        return jsonResponse({ message: 'resourceType must be post or file.' }, 400)
+      }
+
+      await recordView(env, resourceType, resourceId)
+      return jsonResponse({ message: 'View recorded.' })
+    }
+
     if (request.method === 'GET' && url.pathname === '/api/files') {
       const rows = await env.DB.prepare(
         `SELECT
@@ -325,6 +399,7 @@ export default {
             storage_key AS storageKey,
             content_type AS contentType,
             file_size AS fileSize,
+            view_count AS viewCount,
             uploaded_at AS uploadedAt
          FROM uploaded_files
          ORDER BY uploaded_at DESC
@@ -340,7 +415,8 @@ export default {
       }
 
       const postRows = await env.DB.prepare(
-        `SELECT
+        `SELview_count AS viewCount,
+            ECT
             id,
             post_type AS postType,
             title,
@@ -439,7 +515,8 @@ export default {
             created_at,
             updated_at
          )
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         VALview_count AS viewCount,
+            UES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          RETURNING
             id,
             post_type AS postType,
@@ -486,6 +563,7 @@ export default {
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
             author_id AS authorId,
+            view_count AS viewCount,
             created_at AS createdAt,
             updated_at AS updatedAt
            FROM posts
@@ -503,6 +581,7 @@ export default {
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
             author_id AS authorId,
+            view_count AS viewCount,
             created_at AS createdAt,
             updated_at AS updatedAt
            FROM posts
@@ -517,6 +596,10 @@ export default {
       return jsonResponse({ posts: rows.results || [] })
     }
 
+
+  async scheduled(event, env) {
+    await syncViewsToDatabase(env)
+  },
     return jsonResponse({ message: 'Not found' }, 404)
   },
 }

@@ -38,7 +38,7 @@ const Footer = () => {
         </div>
         <div className="site-footer__resources">
           <h3>Resources</h3>
-          <Link to="/library">Research Library</Link>
+          <Link to="/research">Research Library</Link>
           <Link to="/blog">Research Papers</Link>
           <Link to="/blog">Case Studies</Link>
           <Link to="/blog">Publications</Link>

@@ -2,7 +2,7 @@ import Header from './components/header'
 import Footer from './components/footer'
 import Home from './pages/home'
 import About from './pages/about'
-import Library from './pages/library'
+import Research from './pages/research'
 import Admin from './pages/admin'
 import Services from './pages/services'
 import Blog from './pages/blog'
@@ -18,11 +18,11 @@ function App() {
         <main className="app-shell">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/library" element={<Library />} />
+          <Route path="/research" element={<Research />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/articles" element={<Article />} />
+          <Route path="/articles/:id" element={<Article />} />
           <Route path="/internal-access-only" element={<Admin />} />
         </Routes>
         </main>
