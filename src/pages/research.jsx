@@ -1,45 +1,48 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchUploadedFiles } from '../lib/fileApi'
+import { fetchPublishedPosts } from '../lib/fileApi'
 import '../styles/library.css'
 
-function Research() {
-  const [files, setFiles] = useState([])
-  const [filteredFiles, setFilteredFiles] = useState([])
+const Research = () => {
+  const [posts, setPosts] = useState([])
+  const [filteredPosts, setFilteredPosts] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadFiles = async () => {
+    const loadPosts = async () => {
       try {
-        const data = await fetchUploadedFiles()
-        const fileList = Array.isArray(data) ? data : data.files || []
-        setFiles(fileList)
-        setFilteredFiles(fileList)
+        const data = await fetchPublishedPosts('article')
+        const postList = (data.posts || []).sort(
+          (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
+        )
+        setPosts(postList)
+        setFilteredPosts(postList)
       } catch (error) {
-        console.error('Error loading research files:', error)
+        console.error('Error loading research posts:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadFiles()
+    loadPosts()
   }, [])
 
   useEffect(() => {
-    let results = files.filter(file =>
-      file.filename.toLowerCase().includes(searchTerm.toLowerCase())
+    let results = posts.filter(post =>
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (post.excerpt || '').toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     if (sortBy === 'newest') {
-      results.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at))
+      results.sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
     } else if (sortBy === 'most-viewed') {
-      results.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+      results.sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     }
 
-    setFilteredFiles(results)
-  }, [searchTerm, sortBy, files])
+    setFilteredPosts(results)
+  }, [searchTerm, sortBy, posts])
 
   return (
     <section className="library-page">
@@ -76,34 +79,36 @@ function Research() {
       <div className="research-library">
         {loading ? (
           <div className="loading">Loading research...</div>
-        ) : filteredFiles.length > 0 ? (
-          <div className="research-list">
-            {filteredFiles.map(file => (
-              <Link
-                key={file.id}
-                to={`/articles/${file.id}`}
-                className="research-item"
-              >
-                <div className="research-item__media">
-                  <div className="file-icon">📄</div>
+        ) : filteredPosts.length > 0 ? (
+          <div className="research-grid">
+            {filteredPosts.map(post => (
+              <Link key={post.id} to={`/research/${post.id}`} className="research-card">
+                <div className="research-card__media">
+                  {post.coverImageUrl ? (
+                    <img src={post.coverImageUrl} alt={post.title} className="research-card__image" />
+                  ) : (
+                    <div className="placeholder-image placeholder-small">
+                      <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="200" fill="#e5e5e5" />
+                        <text x="150" y="100" textAnchor="middle" fontSize="12" fill="#999">Research Article</text>
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <div className="research-item__content">
-                  <h3>{file.filename}</h3>
-                  <div className="research-meta">
-                    <span className="meta-item">📅 {new Date(file.uploaded_at).toLocaleDateString()}</span>
-                    <span className="meta-item">👁️ {file.viewCount || 0} views</span>
-                    <span className="meta-item">📦 {(file.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                  </div>
-                </div>
-                <div className="research-item__action">
-                  <span className="arrow">→</span>
+                <div className="research-card__content">
+                  <h3>{post.title}</h3>
+                  <p>{post.excerpt || (post.content || '').slice(0, 120)}</p>
+                  <p className="views-badge">
+                    <span className="badge-icon">📄</span>
+                    Research article • 👁️ {post.view_count || 0} views
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
           <div className="empty-state">
-            <p>No research found matching your criteria</p>
+            <p>No research articles found matching your criteria</p>
           </div>
         )}
       </div>

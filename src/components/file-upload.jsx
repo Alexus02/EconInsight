@@ -1,83 +1,128 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { requestPresignedUpload, saveUploadedFileMetadata } from '../lib/fileApi'
 import { validateResearchFile } from '../lib/fileRules'
+import PDFPreview from './pdf-preview'
 import '../styles/file-upload.css'
 
-function FileUpload({ uploaderId = 'anonymous', onUploaded }) {
-  const [selectedFile, setSelectedFile] = useState(null)
+function FileUpload({ uploaderId = 'anonymous', onUploaded, label = 'Upload File' }) {
+  const [selectedFiles, setSelectedFiles] = useState([])
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [previews, setPreviews] = useState([])
+  const fileInputRef = useRef(null)
 
   const previewLabel = useMemo(() => {
-    if (!selectedFile) {
-      return 'No file selected yet.'
+    if (selectedFiles.length === 0) {
+      return 'No files selected yet.'
     }
-
-    return `${selectedFile.name} • ${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`
-  }, [selectedFile])
+    return `${selectedFiles.length} file(s) selected • ${(selectedFiles.reduce((sum, f) => sum + f.size, 0) / (1024 * 1024)).toFixed(2)} MB total`
+  }, [selectedFiles])
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0] || null
-    const validationMessage = validateResearchFile(file)
-
-    setSelectedFile(file)
-    setError(validationMessage)
+    const files = Array.from(event.target.files || [])
+    
+    // Validate all files
+    const errors = files
+      .map(f => validateResearchFile(f))
+      .filter(e => e)
+    
+    setSelectedFiles(files)
+    setError(errors.length > 0 ? errors[0] : '')
     setStatus('')
   }
 
-  const handleUpload = async (event) => {
-    event.preventDefault()
-
-    if (!selectedFile) {
-      setError('Choose a PDF, DOC, DOCX, PNG, or JPG file before uploading.')
+  useEffect(() => {
+    if (selectedFiles.length === 0) {
+      setPreviews([])
       return
     }
 
-    const validationMessage = validateResearchFile(selectedFile)
+    const newPreviews = selectedFiles.map(file => {
+      try {
+        return URL.createObjectURL(file)
+      } catch {
+        return null
+      }
+    })
+    
+    setPreviews(newPreviews)
+    
+    return () => {
+      newPreviews.forEach(url => {
+        if (url) URL.revokeObjectURL(url)
+      })
+    }
+  }, [selectedFiles])
 
-    if (validationMessage) {
-      setError(validationMessage)
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      setError('Choose a PDF, DOC, DOCX, PNG, or JPG file before uploading.')
       return
     }
 
     setIsUploading(true)
     setError('')
-    setStatus('Requesting secure upload link...')
+    setStatus(`Uploading ${selectedFiles.length} file(s)...`)
 
     try {
-      const { uploadUrl, publicUrl, storageKey } = await requestPresignedUpload(selectedFile, uploaderId)
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const selectedFile = selectedFiles[i]
+        const validationMessage = validateResearchFile(selectedFile)
 
-      setStatus('Uploading file...')
+        if (validationMessage) {
+          setError(`${selectedFile.name}: ${validationMessage}`)
+          setIsUploading(false)
+          return
+        }
 
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': selectedFile.type,
-        },
-        body: selectedFile,
-      })
+        setStatus(`Uploading ${i + 1} of ${selectedFiles.length}: ${selectedFile.name}...`)
 
-      if (!uploadResponse.ok) {
-        throw new Error('Direct upload failed.')
+        const { uploadUrl, publicUrl, storageKey } = await requestPresignedUpload(selectedFile, uploaderId)
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': selectedFile.type,
+          },
+          body: selectedFile,
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Direct upload failed for ${selectedFile.name}.`)
+        }
+
+        const saved = await saveUploadedFileMetadata({
+          url: publicUrl,
+          filename: selectedFile.name,
+          uploaderId,
+          storageKey,
+          contentType: selectedFile.type,
+          fileSize: selectedFile.size,
+          uploadedAt: new Date().toISOString(),
+        })
+
+        const savedFile = saved?.file || saved
+
+        try {
+          window.dispatchEvent(new CustomEvent('file:uploaded', { detail: savedFile }))
+        } catch (e) {
+          // no-op in non-browser environments
+        }
+
+        if (onUploaded) {
+          try {
+            onUploaded(savedFile)
+          } catch (e) {
+            onUploaded()
+          }
+        }
       }
 
-      await saveUploadedFileMetadata({
-        url: publicUrl,
-        filename: selectedFile.name,
-        uploaderId,
-        storageKey,
-        contentType: selectedFile.type,
-        fileSize: selectedFile.size,
-        uploadedAt: new Date().toISOString(),
-      })
-
-      setStatus('Upload complete.')
-      setSelectedFile(null)
-      event.target.reset()
-
-      if (onUploaded) {
-        onUploaded()
+      setStatus(`Successfully uploaded ${selectedFiles.length} file(s).`)
+      setSelectedFiles([])
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
       }
     } catch (uploadError) {
       setError(uploadError.message || 'Upload failed.')
@@ -88,7 +133,7 @@ function FileUpload({ uploaderId = 'anonymous', onUploaded }) {
   }
 
   return (
-    <form className="upload-card" onSubmit={handleUpload}>
+    <div className="upload-card">
       <div className="upload-card__header">
         <div>
           <p className="upload-kicker">Research upload</p>
@@ -98,14 +143,37 @@ function FileUpload({ uploaderId = 'anonymous', onUploaded }) {
       </div>
 
       <label className="upload-dropzone">
-        <span className="upload-dropzone__title">Choose a file</span>
-        <span className="upload-dropzone__hint">Files stay off your server and go straight to object storage.</span>
+        <span className="upload-dropzone__title">Choose files</span>
+        <span className="upload-dropzone__hint">Select multiple files. They stay off your server and go straight to object storage.</span>
         <input
+          ref={fileInputRef}
           type="file"
+          multiple
           accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg"
           onChange={handleFileChange}
         />
       </label>
+
+      {previews.length > 0 ? (
+        <div className="upload-preview">
+          {previews.map((previewUrl, idx) => {
+            const file = selectedFiles[idx]
+            return (
+              <div key={idx} className="upload-preview__item">
+                {file?.type === 'application/pdf' ? (
+                  <PDFPreview title={file.name} url={previewUrl} className="upload-preview__pdf" />
+                ) : file && file.type.startsWith('image/') ? (
+                  <img src={previewUrl} alt={file.name} className="upload-preview__image" />
+                ) : (
+                  <div className="upload-preview__fallback">
+                    <p>{file?.name}</p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
 
       <div className="upload-card__meta">
         <span>{previewLabel}</span>
@@ -113,10 +181,10 @@ function FileUpload({ uploaderId = 'anonymous', onUploaded }) {
         {error ? <span className="upload-state upload-state--error">{error}</span> : null}
       </div>
 
-      <button className="upload-button" type="submit" disabled={isUploading}>
-        {isUploading ? 'Uploading...' : 'Upload file'}
+      <button className="upload-button" type="button" onClick={handleUpload} disabled={isUploading}>
+        {isUploading ? 'Uploading...' : label}
       </button>
-    </form>
+    </div>
   )
 }
 

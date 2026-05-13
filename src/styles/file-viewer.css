@@ -46,6 +46,23 @@
   background: #efebe4;
 }
 
+.viewer-item__pdf {
+  height: 100%;
+}
+
+.viewer-item__pdf .pdf-preview__canvas-wrap {
+  height: 220px;
+  border: 0;
+  border-radius: 0;
+  background: #efebe4;
+}
+
+.viewer-item__pdf .pdf-preview__canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .viewer-item__preview iframe,
 .viewer-item__preview img {
   width: 100%;

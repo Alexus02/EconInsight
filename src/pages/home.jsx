@@ -1,28 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchUploadedFiles, fetchAdminPosts } from '../lib/fileApi'
+import { fetchPublishedPosts } from '../lib/fileApi'
 import SkeletonLoader from '../components/SkeletonLoader'
 import '../styles/home.css'
 
 const Home = () => {
-  const [latestResearch, setLatestResearch] = useState([])
-  const [testimonials, setTestimonials] = useState([])
+  const [latestPosts, setLatestPosts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [filesData, postsData] = await Promise.all([
-          fetchUploadedFiles(),
-          fetchAdminPosts(),
-        ])
-
-        const files = Array.isArray(filesData) ? filesData : filesData.files || []
-        setLatestResearch(files.slice(0, 4))
-
-        const posts = postsData.posts || []
-        const publishedPosts = posts.filter(p => p.status === 'published' && p.post_type === 'blog').slice(0, 3)
-        setTestimonials(publishedPosts)
+        const data = await fetchPublishedPosts('article')
+        const posts = (data.posts || []).sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
+        setLatestPosts(posts.slice(0, 4))
       } catch (error) {
         console.error('Error loading home page data:', error)
       } finally {
@@ -31,6 +22,16 @@ const Home = () => {
     }
 
     loadData()
+
+    const onFileUploaded = () => {
+      loadData()
+    }
+
+    window.addEventListener('file:uploaded', onFileUploaded)
+
+    return () => {
+      window.removeEventListener('file:uploaded', onFileUploaded)
+    }
   }, [])
 
   return (
@@ -55,6 +56,56 @@ const Home = () => {
         </div>
       </section>
 
+      <section className="latest-research">
+        <div className="section-header">
+          <h2>Latest Posts</h2>
+          <p>Explore our most recent blog posts and research articles</p>
+        </div>
+        {loading ? (
+          <div className="research-grid">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="research-card-skeleton">
+                <SkeletonLoader variant="rect" style={{ height: '200px', marginBottom: '16px' }} />
+                <SkeletonLoader variant="text" style={{ width: '90%', marginBottom: '8px' }} />
+                <SkeletonLoader variant="text" style={{ width: '70%' }} />
+              </div>
+            ))}
+          </div>
+        ) : latestPosts.length > 0 ? (
+          <div className="research-grid">
+            {latestPosts.map(post => (
+              <Link key={post.id} to={`/posts/${post.id}`} className="research-card">
+                <div className="research-card__media">
+                  {post.coverImageUrl ? (
+                    <img src={post.coverImageUrl} alt={post.title} className="research-card__image" />
+                  ) : (
+                    <div className="placeholder-image placeholder-small">
+                      <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="200" fill="#e5e5e5" />
+                        <text x="150" y="100" textAnchor="middle" fontSize="12" fill="#999">{post.postType === 'article' ? 'Research' : 'Blog'}</text>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="research-card__content">
+                  <h3>{post.title}</h3>
+                  <p>{post.excerpt || (post.content || '').slice(0, 120)}</p>
+                  <p className="views-badge">
+                    <span className="badge-icon">{post.postType === 'article' ? '📄' : '✍️'}</span>
+                    {post.postType === 'article' ? 'Research article' : 'Blog post'}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="empty-state">No posts available yet. Check back soon!</p>
+        )}
+        <div className="section-cta">
+          <Link to="/blog" className="button button--secondary">View All Posts</Link>
+        </div>
+      </section>
+ 
       <section className="why-choose-us">
         <div className="why-choose-us__media">
           <div className="placeholder-image placeholder-medium">
@@ -76,47 +127,6 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="latest-research">
-        <div className="section-header">
-          <h2>Latest Research</h2>
-          <p>Explore our most recent economic research and publications</p>
-        </div>
-        {loading ? (
-          <div className="research-grid">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="research-card-skeleton">
-                <SkeletonLoader variant="rect" style={{ height: '200px', marginBottom: '16px' }} />
-                <SkeletonLoader variant="text" style={{ width: '90%', marginBottom: '8px' }} />
-                <SkeletonLoader variant="text" style={{ width: '70%' }} />
-              </div>
-            ))}
-          </div>
-        ) : latestResearch.length > 0 ? (
-          <div className="research-grid">
-            {latestResearch.map(research => (
-              <Link key={research.id} to={`/articles/${research.id}`} className="research-card">
-                <div className="research-card__media">
-                  <div className="placeholder-image placeholder-small">
-                    <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="300" height="200" fill="#e5e5e5" />
-                      <text x="150" y="100" textAnchor="middle" fontSize="12" fill="#999">Document</text>
-                    </svg>
-                  </div>
-                </div>
-                <div className="research-card__content">
-                  <h3>{research.filename}</h3>
-                  <p className="views-badge"><span className="badge-icon">👁️</span>{research.view_count || 0} views</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="empty-state">No research available yet. Check back soon!</p>
-        )}
-        <div className="section-cta">
-          <Link to="/research" className="button button--secondary">View All Research</Link>
-        </div>
-      </section>
 
       <section className="home-services">
         <div className="section-header">
@@ -148,45 +158,6 @@ const Home = () => {
         <div className="section-cta">
           <Link to="/services" className="button button--secondary">Explore All Services</Link>
         </div>
-      </section>
-
-      <section className="testimonials">
-        <div className="section-header">
-          <h2>What Clients Say</h2>
-          <p>Feedback from organizations we've worked with</p>
-        </div>
-        {loading ? (
-          <div className="testimonials-grid">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="testimonial-skeleton">
-                <SkeletonLoader variant="text" style={{ width: '100%', marginBottom: '12px' }} />
-                <SkeletonLoader variant="text" style={{ width: '100%', marginBottom: '12px' }} />
-                <SkeletonLoader variant="text" style={{ width: '70%', marginBottom: '16px' }} />
-                <SkeletonLoader variant="text" style={{ width: '60%' }} />
-              </div>
-            ))}
-          </div>
-        ) : testimonials.length > 0 ? (
-          <div className="testimonials-grid">
-            {testimonials.map(testimonial => (
-              <div key={testimonial.id} className="testimonial-card">
-                <div className="testimonial-quote">"{testimonial.excerpt || testimonial.content}"</div>
-                <div className="testimonial-author">{testimonial.title}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="testimonials-grid">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="testimonial-skeleton">
-                <SkeletonLoader variant="text" style={{ width: '100%', marginBottom: '12px' }} />
-                <SkeletonLoader variant="text" style={{ width: '100%', marginBottom: '12px' }} />
-                <SkeletonLoader variant="text" style={{ width: '70%', marginBottom: '16px' }} />
-                <SkeletonLoader variant="text" style={{ width: '60%' }} />
-              </div>
-            ))}
-          </div>
-        )}
       </section>
 
       <section className="home-cta">

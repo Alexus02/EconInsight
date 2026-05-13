@@ -8,11 +8,19 @@ const ALLOWED_MIME_TYPES = new Set([
 const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024
 const accessKeyCache = new Map()
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-host-token, cf-access-jwt-assertion',
+  'Access-Control-Max-Age': '86400',
+}
+
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json',
+      ...CORS_HEADERS,
     },
   })
 }
@@ -30,6 +38,20 @@ function sanitizeFileName(filename) {
     .trim()
     .replace(/[^a-zA-Z0-9._-]/g, '-')
     .toLowerCase()
+}
+
+function inferContentType(filename, explicitContentType) {
+  if (explicitContentType) {
+    return explicitContentType
+  }
+
+  const lowerName = String(filename || '').toLowerCase()
+  if (lowerName.endsWith('.pdf')) return 'application/pdf'
+  if (lowerName.endsWith('.png')) return 'image/png'
+  if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) return 'image/jpeg'
+  if (lowerName.endsWith('.doc')) return 'application/msword'
+  if (lowerName.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  return ''
 }
 
 function decodeBase64Url(input) {
@@ -182,14 +204,65 @@ function normalizePostStatus(status) {
   return status === 'published' ? 'published' : 'draft'
 }
 
+function normalizeArticleLayout(layout) {
+  if (!layout || layout === 'default') {
+    return 'single-column'
+  }
+
+  return ['single-column', 'two-columns', 'paginated', 'carousel'].includes(layout)
+    ? layout
+    : 'single-column'
+}
+
+function parseJsonArray(value) {
+  if (!value) {
+    return []
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).map(String)
+  }
+
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : []
+  } catch {
+    return []
+  }
+}
+
+function mapPostRow(row) {
+  if (!row) {
+    return row
+  }
+
+  return {
+    ...row,
+    articleImageUrls: parseJsonArray(row.articleImageUrls),
+  }
+}
+
 async function recordView(env, resourceType, resourceId) {
+  const table = resourceType === 'post' ? 'posts' : 'uploaded_files'
+  if (!env.VIEWS_KV) {
+    await env.DB.prepare(`UPDATE ${table} SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?`).bind(resourceId).run()
+    return
+  }
+
   const key = `view:${resourceType}:${resourceId}`
   const current = await env.VIEWS_KV.get(key)
   const count = current ? parseInt(current, 10) + 1 : 1
   await env.VIEWS_KV.put(key, String(count))
+
+  // Keep D1 in sync even when KV is enabled.
+  await env.DB.prepare(`UPDATE ${table} SET view_count = ? WHERE id = ?`).bind(count, resourceId).run()
 }
 
 async function syncViewsToDatabase(env) {
+  if (!env.VIEWS_KV) {
+    return
+  }
+
   const keys = await env.VIEWS_KV.list()
   const updates = []
 
@@ -230,6 +303,13 @@ export default {
       return jsonResponse({ message: 'Invalid request URL.' }, 400)
     }
 
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: CORS_HEADERS,
+      })
+    }
+
     if (request.method === 'POST' && url.pathname === '/api/admin/uploads/presign') {
       if (!(await isHostRequest(request, env))) {
         return jsonResponse({ message: 'Forbidden' }, 403)
@@ -243,11 +323,12 @@ export default {
       }
 
       const { filename, contentType, size, uploaderId } = body || {}
-      if (!filename || !contentType || !Number.isFinite(size)) {
+      const resolvedContentType = inferContentType(filename, contentType)
+      if (!filename || !resolvedContentType || !Number.isFinite(size)) {
         return jsonResponse({ message: 'filename, contentType, and size are required.' }, 400)
       }
 
-      if (!ALLOWED_MIME_TYPES.has(contentType)) {
+      if (!ALLOWED_MIME_TYPES.has(resolvedContentType)) {
         return jsonResponse({ message: 'Only PDF, DOC, DOCX, PNG, and JPG files are allowed.' }, 400)
       }
 
@@ -262,10 +343,10 @@ export default {
       const safeName = sanitizeFileName(filename)
       const key = `research-files/${uploaderId || 'anonymous'}/${Date.now()}-${safeName}`
       const expiresAt = Date.now() + 5 * 60 * 1000
-      const token = await signUploadToken(env.UPLOAD_SIGNING_SECRET, key, contentType, expiresAt)
+      const token = await signUploadToken(env.UPLOAD_SIGNING_SECRET, key, resolvedContentType, expiresAt)
 
       return jsonResponse({
-        uploadUrl: `/api/admin/uploads/object/${encodeURIComponent(key)}?expiresAt=${expiresAt}&token=${token}&contentType=${encodeURIComponent(contentType)}`,
+        uploadUrl: `/api/admin/uploads/object/${encodeURIComponent(key)}?expiresAt=${expiresAt}&token=${token}&contentType=${encodeURIComponent(resolvedContentType)}`,
         publicUrl: toPublicFileUrl(url, env, key),
         storageKey: key,
         expiresIn: 300,
@@ -293,7 +374,10 @@ export default {
         },
       })
 
-      return new Response(null, { status: 204 })
+      return new Response(null, {
+        status: 204,
+        headers: CORS_HEADERS,
+      })
     }
 
     if (request.method === 'POST' && url.pathname === '/api/files') {
@@ -360,6 +444,10 @@ export default {
       headers.set('etag', object.httpEtag)
       headers.set('cache-control', 'public, max-age=300')
       headers.set('x-content-type-options', 'nosniff')
+      headers.set('Access-Control-Allow-Origin', CORS_HEADERS['Access-Control-Allow-Origin'])
+      headers.set('Access-Control-Allow-Methods', CORS_HEADERS['Access-Control-Allow-Methods'])
+      headers.set('Access-Control-Allow-Headers', CORS_HEADERS['Access-Control-Allow-Headers'])
+      headers.set('Access-Control-Max-Age', CORS_HEADERS['Access-Control-Max-Age'])
 
       return new Response(object.body, {
         status: 200,
@@ -415,8 +503,7 @@ export default {
       }
 
       const postRows = await env.DB.prepare(
-        `SELview_count AS viewCount,
-            ECT
+        `SELECT
             id,
             post_type AS postType,
             title,
@@ -427,6 +514,7 @@ export default {
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
             author_id AS authorId,
+            view_count AS viewCount,
             created_at AS createdAt,
             updated_at AS updatedAt
          FROM posts
@@ -462,7 +550,7 @@ export default {
       }
 
       return jsonResponse({
-        posts: postRows.results || [],
+        posts: (postRows.results || []).map(mapPostRow),
         stats,
       })
     }
@@ -487,6 +575,8 @@ export default {
       const articleFileUrl = payload?.articleFileUrl ? String(payload.articleFileUrl) : null
       const articleStorageKey = payload?.articleStorageKey ? String(payload.articleStorageKey) : null
       const coverImageUrl = payload?.coverImageUrl ? String(payload.coverImageUrl) : null
+      const articleLayout = normalizeArticleLayout(payload?.articleLayout)
+      const articleImageUrls = parseJsonArray(payload?.articleImageUrls)
       const authorId = payload?.authorId ? String(payload.authorId) : 'host'
 
       if (!postType) {
@@ -495,10 +585,6 @@ export default {
 
       if (!title) {
         return jsonResponse({ message: 'title is required.' }, 400)
-      }
-
-      if (postType === 'article' && !articleFileUrl) {
-        return jsonResponse({ message: 'articleFileUrl is required for article posts.' }, 400)
       }
 
       const result = await env.DB.prepare(
@@ -511,12 +597,13 @@ export default {
             article_file_url,
             article_storage_key,
             cover_image_url,
+            article_layout,
+            article_image_urls,
             author_id,
             created_at,
             updated_at
          )
-         VALview_count AS viewCount,
-            UES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          RETURNING
             id,
             post_type AS postType,
@@ -527,6 +614,8 @@ export default {
             article_file_url AS articleFileUrl,
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
+              article_layout AS articleLayout,
+              article_image_urls AS articleImageUrls,
             author_id AS authorId,
             created_at AS createdAt,
             updated_at AS updatedAt`
@@ -540,13 +629,15 @@ export default {
           articleFileUrl,
           articleStorageKey,
           coverImageUrl,
+          articleLayout,
+          JSON.stringify(articleImageUrls),
           authorId,
           new Date().toISOString(),
           new Date().toISOString()
         )
         .first()
 
-      return jsonResponse({ post: result }, 201)
+      return jsonResponse({ post: mapPostRow(result) }, 201)
     }
 
     if (request.method === 'GET' && url.pathname === '/api/posts') {
@@ -562,6 +653,8 @@ export default {
             article_file_url AS articleFileUrl,
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
+            article_layout AS articleLayout,
+            article_image_urls AS articleImageUrls,
             author_id AS authorId,
             view_count AS viewCount,
             created_at AS createdAt,
@@ -580,6 +673,8 @@ export default {
             article_file_url AS articleFileUrl,
             article_storage_key AS articleStorageKey,
             cover_image_url AS coverImageUrl,
+            article_layout AS articleLayout,
+            article_image_urls AS articleImageUrls,
             author_id AS authorId,
             view_count AS viewCount,
             created_at AS createdAt,
@@ -593,13 +688,13 @@ export default {
         ? await env.DB.prepare(query).bind(typeFilter).all()
         : await env.DB.prepare(query).all()
 
-      return jsonResponse({ posts: rows.results || [] })
+      return jsonResponse({ posts: (rows.results || []).map(mapPostRow) })
     }
 
+    return jsonResponse({ message: 'Not found' }, 404)
+  },
 
   async scheduled(event, env) {
     await syncViewsToDatabase(env)
-  },
-    return jsonResponse({ message: 'Not found' }, 404)
   },
 }

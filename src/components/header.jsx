@@ -42,9 +42,7 @@ const Header = () => {
         <Link to="/research" className="site-nav__link" onClick={() => setShowMenu(false)}>
           Research
         </Link>
-        <Link to="/articles" className="site-nav__link" onClick={() => setShowMenu(false)}>
-          Articles
-        </Link>
+ 
         <Link to="/blog" className="site-nav__link" onClick={() => setShowMenu(false)}>
           Blog
         </Link>

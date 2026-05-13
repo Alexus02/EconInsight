@@ -1,0 +1,244 @@
+.settings-page {
+  padding: 32px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-page h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 32px;
+}
+
+.settings-page h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Section */
+.settings-section {
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.settings-section__header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.04);
+}
+
+.settings-section__header p {
+  font-size: 13px;
+  color: #999;
+  margin: 4px 0 0 0;
+}
+
+/* Item */
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.04);
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item__label {
+  flex: 0 0 40%;
+}
+
+.settings-item__label label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.settings-item__help {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.settings-item__content {
+  flex: 1;
+}
+
+.settings-item__value {
+  font-size: 14px;
+  color: #333;
+}
+
+/* Token */
+.settings-token {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-token__input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  background: #f5f5f5;
+  color: #666;
+}
+
+.settings-token__action {
+  padding: 6px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.settings-token__action:hover {
+  background: #f5f5f5;
+  border-color: rgba(39, 119, 131, 0.3);
+}
+
+/* Badge */
+.settings-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #f0f7f8;
+  border: 1px solid rgba(39, 119, 131, 0.2);
+  color: #277783;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 4px 4px 4px 0;
+}
+
+/* Allowed Types */
+.settings-allowed-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Stored Data */
+.settings-stored-data ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-stored-data li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  font-size: 14px;
+  color: #333;
+}
+
+.settings-stored-data li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* Button */
+.settings-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-button--secondary {
+  background: #f5f5f5;
+  color: #277783;
+  border: 1px solid rgba(39, 119, 131, 0.2);
+}
+
+.settings-button--secondary:hover {
+  background: #277783;
+  color: #fff;
+  border-color: #277783;
+}
+
+/* Info Grid */
+.settings-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.settings-info-item {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(17, 17, 17, 0.04);
+}
+
+.settings-info-item__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #999;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.settings-info-item__value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 16px;
+  }
+
+  .settings-item {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .settings-item__label {
+    flex: 1 1 auto;
+  }
+
+  .settings-token {
+    flex-direction: column;
+  }
+
+  .settings-token__input {
+    width: 100%;
+  }
+
+  .settings-allowed-types {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-info-grid {
+    grid-template-columns: 1fr;
+  }
+}

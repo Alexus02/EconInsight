@@ -7,9 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://econinsight-api.corporate-affairs.workers.dev',
+        target: 'http://localhost:8787',
         changeOrigin: true,
-        secure: true,
       },
     },
   },

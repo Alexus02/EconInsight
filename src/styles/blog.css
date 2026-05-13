@@ -37,81 +37,102 @@
   flex: 1;
 }
 
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-}
-
-.blog-post-card {
-  background: #fff;
+.posts-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
 }
 
-.blog-post-card:hover {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+.thread-post {
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  transition: background-color 0.2s ease;
 }
 
-.post-image {
+.thread-post:last-child {
+  border-bottom: none;
+}
+
+.thread-post:hover {
+  background-color: #fafafa;
+}
+
+.thread-post__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.thread-post__image {
   width: 100%;
   height: 200px;
-  background: #f3f4f6;
   overflow: hidden;
+  border-radius: 8px;
+  background: #f5f5f5;
+  margin: -1rem -1rem 0 -1rem;
 }
 
-.post-image img {
+.thread-post__image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.post-image.placeholder {
+.thread-post__header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.post-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
 }
 
-.post-content h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+.thread-post__header h3 {
+  font-size: 1rem;
+  font-weight: 700;
   color: #0a0e27;
+  margin: 0;
   line-height: 1.4;
-}
-
-.post-excerpt {
-  font-size: 0.95rem;
-  color: #5a6c7d;
-  line-height: 1.6;
   flex: 1;
 }
 
-.post-meta {
+.thread-post__date {
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.thread-post__body {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.thread-post__body p {
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.thread-post__footer {
+  display: flex;
+  gap: 1.5rem;
   font-size: 0.85rem;
   color: #6b7280;
 }
 
-.read-more {
-  color: #3b82f6;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
+.thread-post__engagement {
+  cursor: default;
 }
 
-.read-more:hover {
-  color: #2563eb;
+.thread-post:hover .thread-post__link {
+  color: #0a0e27;
 }
 
 /* Sidebar */
@@ -278,13 +299,23 @@
     font-size: 2rem;
   }
 
-  .posts-grid {
-    grid-template-columns: 1fr;
-  }
-
   .blog-container {
     padding: 1.5rem;
     gap: 1.5rem;
+  }
+
+  .thread-post__link {
+    padding: 0.75rem;
+  }
+
+  .thread-post__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .thread-post__date {
+    white-space: normal;
   }
 
   .subscribe-section {

@@ -6,6 +6,8 @@
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(17, 17, 17, 0.08);
   box-shadow: 0 24px 50px rgba(17, 17, 17, 0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .upload-card__header {
@@ -71,6 +73,42 @@
 
 .upload-state--error {
   color: #b42318;
+}
+
+.upload-preview {
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f7f8fa;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.upload-preview__item {
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.upload-preview__pdf .pdf-preview__canvas-wrap {
+  border: 0;
+  border-radius: 0;
+  max-height: 200px;
+}
+
+.upload-preview__image {
+  width: 100%;
+  display: block;
+  height: 200px;
+  object-fit: cover;
+}
+
+.upload-preview__fallback {
+  padding: 20px;
+  color: #56524d;
 }
 
 .upload-button {

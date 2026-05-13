@@ -1,89 +1,93 @@
-import { useEffect, useMemo, useState } from 'react'
-import { createPost, fetchAdminPosts, fetchUploadedFiles } from '../lib/fileApi'
-import FileUpload from '../components/file-upload'
+import React, { useEffect, useState } from 'react'
+import { fetchUploadedFiles, fetchAdminPosts, createPost } from '../lib/fileApi'
+import AdminSidebar from '../components/admin/AdminSidebar'
+import AdminPreview from '../components/admin/AdminPreview'
+import Dashboard from './adminPages/Dashboard'
+import Posts from './adminPages/Posts'
+import Analytics from './adminPages/Analytics'
+import Settings from './adminPages/Settings'
 import '../styles/admin.css'
 
 function Admin() {
+  const [activePage, setActivePage] = useState('dashboard')
   const [postType, setPostType] = useState('article')
-  const [status, setStatus] = useState('draft')
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
-  const [selectedFileUrl, setSelectedFileUrl] = useState('')
-  const [selectedFileKey, setSelectedFileKey] = useState('')
-  const [coverImageUrl, setCoverImageUrl] = useState('')
+  const [category, setCategory] = useState('')
+  const [selectedDocUrl, setSelectedDocUrl] = useState('')
+  const [selectedDocKey, setSelectedDocKey] = useState('')
+  const [selectedDocLabel, setSelectedDocLabel] = useState('')
+  const [selectedImageUrls, setSelectedImageUrls] = useState([])
   const [uploadedFiles, setUploadedFiles] = useState([])
-  const [posts, setPosts] = useState([])
-  const [stats, setStats] = useState({ totalPosts: 0, blogPosts: 0, articlePosts: 0, drafts: 0 })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [articleLayout, setArticleLayout] = useState('default')
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
-
-  const articleFiles = useMemo(
-    () =>
-      uploadedFiles.filter((file) =>
-        ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(
-          file.contentType
-        )
-      ),
-    [uploadedFiles]
-  )
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [allPosts, setAllPosts] = useState([])
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [trackFilter, setTrackFilter] = useState('all')
+  
 
   useEffect(() => {
     let active = true
-
-    async function loadDashboardData() {
+    async function loadFiles() {
       try {
-        const [filesResult, postsResult] = await Promise.all([fetchUploadedFiles(), fetchAdminPosts()])
-        if (!active) {
-          return
-        }
-
+        const filesResult = await fetchUploadedFiles()
+        if (!active) return
         setUploadedFiles(Array.isArray(filesResult) ? filesResult : filesResult.files || [])
-        setPosts(postsResult.posts || [])
-        setStats(postsResult.stats || { totalPosts: 0, blogPosts: 0, articlePosts: 0, drafts: 0 })
-      } catch (loadError) {
-        if (!active) {
-          return
-        }
-        setError(loadError.message || 'Unable to load admin data.')
+      } catch (err) {
+        console.error('Failed to load uploaded files', err)
       }
     }
 
-    loadDashboardData()
+    loadFiles()
+
+    const onFileUploaded = (e) => {
+      const file = e?.detail || null
+      // refresh list
+      loadFiles()
+      if (file?.url) {
+        pickDoc(file)
+      }
+    }
+
+    window.addEventListener('file:uploaded', onFileUploaded)
     return () => {
       active = false
+      window.removeEventListener('file:uploaded', onFileUploaded)
     }
   }, [])
 
-  const refreshFiles = async () => {
+  const loadAdminPosts = async () => {
+    setPostsLoading(true)
     try {
-      const filesResult = await fetchUploadedFiles()
-      setUploadedFiles(Array.isArray(filesResult) ? filesResult : filesResult.files || [])
-    } catch (loadError) {
-      setError(loadError.message || 'Unable to refresh uploaded files.')
+      const data = await fetchAdminPosts()
+      const posts = (data.posts || []).sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
+      setAllPosts(posts)
+    } catch (err) {
+      console.error('Failed to load admin posts:', err)
+    } finally {
+      setPostsLoading(false)
     }
   }
 
-  const handleFileSelection = (event) => {
-    const value = event.target.value
-    setSelectedFileUrl(value)
-    const found = articleFiles.find((file) => file.url === value)
-    setSelectedFileKey(found?.storageKey || '')
+  useEffect(() => {
+    loadAdminPosts()
+  }, [])
+
+  const pickDoc = (file) => {
+    setSelectedDocUrl(file.url)
+    setSelectedDocKey(file.storageKey || '')
+    setSelectedDocLabel(file.filename || file.url)
   }
 
-  const resetForm = () => {
-    setTitle('')
-    setExcerpt('')
-    setContent('')
-    setSelectedFileUrl('')
-    setSelectedFileKey('')
-    setCoverImageUrl('')
-    setStatus('draft')
+  const toggleImageSelection = (url) => {
+    setSelectedImageUrls((current) => (current.includes(url) ? current.filter((u) => u !== url) : [...current, url]))
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const submitPost = async (status = 'published') => {
     setError('')
     setStatusMessage('')
 
@@ -92,8 +96,8 @@ function Admin() {
       return
     }
 
-    if (postType === 'article' && !selectedFileUrl) {
-      setError('Select a research file for article posts.')
+    if (postType === 'blog' && status === 'published' && !content.trim()) {
+      setError('Content is required for blog posts.')
       return
     }
 
@@ -103,174 +107,143 @@ function Admin() {
         postType,
         status,
         title: title.trim(),
-        excerpt: excerpt.trim(),
-        content: content.trim(),
-        articleFileUrl: postType === 'article' ? selectedFileUrl : null,
-        articleStorageKey: postType === 'article' ? selectedFileKey : null,
-        coverImageUrl: coverImageUrl.trim() || null,
+        excerpt: excerpt.trim() || null,
+        content: postType === 'blog' ? (content.trim() || null) : null,
+        articleFileUrl: selectedDocUrl || null,
+        articleStorageKey: selectedDocKey || null,
+          coverImageUrl: selectedImageUrls[0] || null,
+          articleImageUrls: selectedImageUrls,
+          articleLayout,
         authorId: 'host',
       }
 
-      const result = await createPost(payload)
-      const newPost = result.post
-      setPosts((current) => [newPost, ...current])
-      setStats((current) => ({
-        totalPosts: (current.totalPosts || 0) + 1,
-        blogPosts: current.blogPosts + (newPost.postType === 'blog' ? 1 : 0),
-        articlePosts: current.articlePosts + (newPost.postType === 'article' ? 1 : 0),
-        drafts: current.drafts + (newPost.status === 'draft' ? 1 : 0),
-      }))
-      setStatusMessage('Post created successfully.')
-      resetForm()
-    } catch (submitError) {
-      setError(submitError.message || 'Failed to create post.')
+      await createPost(payload)
+      setStatusMessage(status === 'draft' ? 'Draft saved successfully.' : 'Post published successfully.')
+      setTitle('')
+      setCategory('')
+      setExcerpt('')
+      setContent('')
+      setSelectedDocUrl('')
+      setSelectedDocKey('')
+      setSelectedDocLabel('')
+      setSelectedImageUrls([])
+      setArticleLayout('default')
+      await loadAdminPosts()
+    } catch (err) {
+      setError(err.message || 'Failed to create post')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const selectedFile = uploadedFiles.find((f) => f.url === selectedDocUrl)
+  const previewLabel = postType === 'article' ? 'Research article' : 'Blog post'
+  const previewBody = postType === 'blog' ? (content || 'Your blog body will appear here.') : (content || 'No body is required for an article.')
+  const previewExcerpt = postType === 'blog' ? excerpt : 'Excerpt is not required for research articles.'
+  const filteredPosts = allPosts.filter((post) => {
+    const postStatus = String(post.status || 'published').toLowerCase()
+    if (trackFilter === 'all') return true
+    if (trackFilter === 'draft') return postStatus === 'draft'
+    return (post.post_type || post.postType) === trackFilter
+  })
+
+  const stats = {
+    total: allPosts.length,
+    blogs: allPosts.filter((post) => (post.post_type || post.postType) === 'blog').length,
+    articles: allPosts.filter((post) => (post.post_type || post.postType) === 'article').length,
+    drafts: allPosts.filter((post) => String(post.status || '').toLowerCase() === 'draft').length,
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsPreviewOpen(false)
+      }
+    }
+
+    if (isPreviewOpen) {
+      window.addEventListener('keydown', onKeyDown)
+    }
+
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isPreviewOpen])
+
   return (
     <section className="admin-page">
-      <aside className="admin-sidebar">
-        <h2>EconInsight</h2>
-        <nav>
-          <span className="admin-nav-item admin-nav-item--active">Dashboard</span>
-          <span className="admin-nav-item">Posts</span>
-          <span className="admin-nav-item">Upload</span>
-          <span className="admin-nav-item">Analytics</span>
-          <span className="admin-nav-item">Settings</span>
-        </nav>
-      </aside>
+      <AdminSidebar activePage={activePage} onPageChange={setActivePage} />
 
       <div className="admin-main">
-        <header className="admin-header">
-          <div>
-            <p className="admin-kicker">Host portal</p>
-            <h1>Content Dashboard</h1>
-          </div>
-          <span className="admin-chip">+ New Post</span>
-        </header>
+        {activePage === 'dashboard' && <Dashboard stats={stats} />}
 
-        <div className="admin-stats-grid">
-          <article>
-            <p>Total Posts</p>
-            <strong>{stats.totalPosts}</strong>
-          </article>
-          <article>
-            <p>Blog Posts</p>
-            <strong>{stats.blogPosts}</strong>
-          </article>
-          <article>
-            <p>Articles</p>
-            <strong>{stats.articlePosts}</strong>
-          </article>
-          <article>
-            <p>Drafts</p>
-            <strong>{stats.drafts}</strong>
-          </article>
-        </div>
+        {activePage === 'posts' && (
+          <Posts
+            postType={postType}
+            title={title}
+            excerpt={excerpt}
+            content={content}
+            category={category}
+            selectedDocUrl={selectedDocUrl}
+            selectedDocLabel={selectedDocLabel}
+            selectedFile={selectedFile}
+            articleLayout={articleLayout}
+            uploadedFiles={uploadedFiles}
+            selectedImageUrls={selectedImageUrls}
+            isSubmitting={isSubmitting}
+            statusMessage={statusMessage}
+            error={error}
+            filteredPosts={filteredPosts}
+            postsLoading={postsLoading}
+            trackFilter={trackFilter}
+            onPostTypeChange={setPostType}
+            onTitleChange={setTitle}
+            onExcerptChange={setExcerpt}
+            onContentChange={setContent}
+            onCategoryChange={setCategory}
+            onDocLabelChange={(val) => setSelectedDocLabel(val)}
+            onDocBlur={(e) => {
+              const val = e.target.value
+              const found = uploadedFiles.find((f) => f.filename === val || f.url === val)
+              if (found && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(found.contentType)) {
+                pickDoc(found)
+              }
+            }}
+            onArticleLayoutChange={setArticleLayout}
+            onFileUpload={(file) => {
+              if (file?.url) {
+                pickDoc(file)
+              }
+              fetchUploadedFiles()
+                .then((r) => setUploadedFiles(Array.isArray(r) ? r : r.files || []))
+                .catch(() => {})
+            }}
+            onCoverImageChange={(url) => setSelectedImageUrls([url, ...selectedImageUrls.slice(1)])}
+            onRemoveCoverImage={() => setSelectedImageUrls(selectedImageUrls.slice(1))}
+            onSubmit={(ev) => {
+              ev.preventDefault()
+              submitPost('published')
+            }}
+            onSaveDraft={() => submitPost('draft')}
+            onPreview={() => setIsPreviewOpen(true)}
+            onFilterChange={setTrackFilter}
+          />
+        )}
 
-        <form className="admin-form" onSubmit={handleSubmit}>
-          <div className="admin-form__section">
-            <h2>1) Upload source files</h2>
-            <FileUpload uploaderId="host" onUploaded={refreshFiles} />
-          </div>
-
-          <div className="admin-form__section">
-            <h2>2) Create post</h2>
-          </div>
-
-          <div className="admin-form__row">
-            <label>
-              Post type
-              <select value={postType} onChange={(event) => setPostType(event.target.value)}>
-                <option value="article">Article (research paper)</option>
-                <option value="blog">Blog</option>
-              </select>
-            </label>
-            <label>
-              Status
-              <select value={status} onChange={(event) => setStatus(event.target.value)}>
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </label>
-          </div>
-
-          <label>
-            Title
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Post title" />
-          </label>
-
-          <label>
-            Excerpt
-            <textarea
-              rows={2}
-              value={excerpt}
-              onChange={(event) => setExcerpt(event.target.value)}
-              placeholder="Short summary shown on cards"
-            />
-          </label>
-
-          {postType === 'article' ? (
-            <label>
-              Linked research file
-              <select value={selectedFileUrl} onChange={handleFileSelection}>
-                <option value="">Select uploaded file</option>
-                {articleFiles.map((file) => (
-                  <option key={file.id || file.storageKey || file.url} value={file.url}>
-                    {file.filename}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          <label>
-            Cover image URL (optional)
-            <input
-              value={coverImageUrl}
-              onChange={(event) => setCoverImageUrl(event.target.value)}
-              placeholder="https://..."
-            />
-          </label>
-
-          <label>
-            Content
-            <textarea
-              rows={6}
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder="Blog body or article description"
-            />
-          </label>
-
-          {statusMessage ? <p className="admin-status admin-status--ok">{statusMessage}</p> : null}
-          {error ? <p className="admin-status admin-status--error">{error}</p> : null}
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Create post'}
-          </button>
-        </form>
-
-        <section className="admin-posts">
-          <h2>Recent posts</h2>
-          {posts.length === 0 ? <p>No posts yet.</p> : null}
-          <div className="admin-post-list">
-            {posts.map((post) => (
-              <article key={post.id} className="admin-post-item">
-                <div>
-                  <p className="admin-post-item__meta">
-                    {post.postType.toUpperCase()} · {post.status.toUpperCase()}
-                  </p>
-                  <h3>{post.title}</h3>
-                  <p>{post.excerpt || 'No excerpt provided.'}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        {activePage === 'analytics' && <Analytics />}
+        {activePage === 'settings' && <Settings />}
       </div>
+
+      <AdminPreview
+        isOpen={isPreviewOpen}
+        title={title}
+        postType={postType}
+        articleLayout={articleLayout}
+        selectedDocUrl={selectedDocUrl}
+        selectedDocLabel={selectedDocLabel}
+        selectedFile={selectedFile}
+        excerpt={excerpt}
+        content={content}
+        onClose={() => setIsPreviewOpen(false)}
+      />
     </section>
   )
 }

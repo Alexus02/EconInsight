@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchUploadedFiles } from '../lib/fileApi'
+import PDFPreview from './pdf-preview'
 import '../styles/file-viewer.css'
 
 function FileViewer() {
@@ -59,7 +60,13 @@ function FileViewer() {
           <article key={file.id || file.url || file.filename} className="viewer-item">
             <div className="viewer-item__preview">
               {isPdf(file) ? (
-                <iframe title={file.filename} src={file.url} />
+                <PDFPreview
+                  title={file.filename}
+                  url={file.url}
+                  showControls={false}
+                  showTextSnippet={false}
+                  className="viewer-item__pdf"
+                />
               ) : isImage(file) ? (
                 <img src={file.url} alt={file.filename} />
               ) : (

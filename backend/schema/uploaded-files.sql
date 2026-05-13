@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS posts (
   article_file_url TEXT,
   article_storage_key TEXT,
   cover_image_url TEXT,
+  article_layout TEXT NOT NULL DEFAULT 'single-column',
+  article_image_urls TEXT,
   author_id TEXT,
   view_count INTEGER DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

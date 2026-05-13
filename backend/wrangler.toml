@@ -11,10 +11,20 @@ binding = "DB"
 database_name = "econ-insight-d1"
 database_id = "60040923-eb74-4982-85bf-bfc62809d058"
 
-[[kv_namespaces]]
-binding = "VIEWS_KV"
-id = "your_kv_id_here"
-preview_id = "your_kv_preview_id_here"
+[env.development]
+vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "dev-signing-secret-67890", R2_PUBLIC_BASE_URL = "http://localhost:8787/api/files/object" }
 
-[triggers]
-crons = ["*/5 * * * *"]
+[[env.development.r2_buckets]]
+binding = "RESEARCH_BUCKET"
+bucket_name = "econ-insight-r2"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "econ-insight-d1"
+database_id = "60040923-eb74-4982-85bf-bfc62809d058"
+
+[env.production]
+vars = { HOST_PORTAL_TOKEN = "", UPLOAD_SIGNING_SECRET = "", R2_PUBLIC_BASE_URL = "https://files.econinsight.com" }
+
+[env.local]
+vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "local-test-secret" }
