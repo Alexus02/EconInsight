@@ -17,6 +17,15 @@ From repo root:
    - `VITE_HOST_PORTAL_TOKEN` (must match backend `HOST_PORTAL_TOKEN`)
 3. `npm run dev`
 
+## Vercel deployment
+
+If you deploy the React frontend to Vercel, set these environment variables in the Vercel project settings:
+
+1. `VITE_API_BASE_URL` - the public URL of the Cloudflare Worker API that serves `/api/*`.
+2. `VITE_HOST_PORTAL_TOKEN` - must match the backend `HOST_PORTAL_TOKEN` if you are using the host-token fallback.
+
+The repo includes a `vercel.json` rewrite so direct visits to `/internal-access-only` and other client routes load the SPA correctly.
+
 ### Frontend routes
 
 - Public library: `/library` (read-only file feed for users)
