@@ -43,9 +43,6 @@ function Analytics() {
   // Top posts by views
   const topPosts = [...publishedPosts].sort((a, b) => (b.view_count || b.viewCount || 0) - (a.view_count || a.viewCount || 0)).slice(0, 10)
 
-  // Recent posts
-  const recentPosts = [...posts].sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt)).slice(0, 5)
-
   // Blog vs Article breakdown
   const blogViews = blogs.reduce((sum, p) => sum + (p.view_count || p.viewCount || 0), 0)
   const articleViews = articles.reduce((sum, p) => sum + (p.view_count || p.viewCount || 0), 0)
@@ -114,32 +111,6 @@ function Analytics() {
         )}
       </div>
 
-      <div className="analytics-section">
-        <h2>Recent Activity</h2>
-        {recentPosts.length === 0 ? (
-          <p className="analytics-empty">No posts yet</p>
-        ) : (
-          <div className="analytics-feed">
-            {recentPosts.map((post) => (
-              <div key={post.id} className="analytics-feed__item">
-                <div className="analytics-feed__header">
-                  <h3>{post.title}</h3>
-                  <span className={`analytics-badge analytics-badge--${post.status || 'published'}`}>
-                    {(post.status || 'published').charAt(0).toUpperCase() + (post.status || 'published').slice(1)}
-                  </span>
-                </div>
-                <div className="analytics-feed__meta">
-                  <span>{post.post_type === 'blog' || post.postType === 'blog' ? 'Blog' : 'Article'}</span>
-                  <span>•</span>
-                  <span>{new Date(post.created_at || post.createdAt).toLocaleDateString()}</span>
-                  <span>•</span>
-                  <span>{(post.view_count || post.viewCount || 0).toLocaleString()} views</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

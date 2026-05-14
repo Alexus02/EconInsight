@@ -147,6 +147,10 @@ function Admin() {
     return (post.post_type || post.postType) === trackFilter
   })
 
+  const recentPosts = [...allPosts]
+    .sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
+    .slice(0, 5)
+
   const stats = {
     total: allPosts.length,
     blogs: allPosts.filter((post) => (post.post_type || post.postType) === 'blog').length,
@@ -173,7 +177,7 @@ function Admin() {
       <AdminSidebar activePage={activePage} onPageChange={setActivePage} />
 
       <div className="admin-main">
-        {activePage === 'dashboard' && <Dashboard stats={stats} />}
+        {activePage === 'dashboard' && <Dashboard stats={stats} recentPosts={recentPosts} />}
 
         {activePage === 'posts' && (
           <Posts
