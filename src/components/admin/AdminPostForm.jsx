@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import FileUpload from '../file-upload'
 import PDFPreview from '../pdf-preview'
-import '../../styles/admin-post-form-pages.css'
+import '../../styles/adminStyles/admin-post-form-pages.css'
 
 const AdminPostForm = ({
   postType,

@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 const HOST_PORTAL_TOKEN = import.meta.env.VITE_HOST_PORTAL_TOKEN || ''
+const ADMIN_SESSION_STORAGE_KEY = 'econinsight.admin.session-token'
 
 const MIME_TYPES_BY_EXTENSION = {
   '.pdf': 'application/pdf',
@@ -52,19 +53,52 @@ function mapPostRecord(post) {
   return {
     ...post,
     articleFileUrl: toClientFileUrl(post.articleFileUrl),
+    coverImageUrl: toClientFileUrl(post.coverImageUrl),
+    articleImageUrls: (post.articleImageUrls || []).map(toClientFileUrl),
   }
 }
 
 function getHostHeaders() {
-  if (!HOST_PORTAL_TOKEN) {
-    console.warn('⚠️ VITE_HOST_PORTAL_TOKEN is not set')
-    return {}
+  const sessionToken = typeof window !== 'undefined' ? window.localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) : ''
+
+  if (sessionToken) {
+    return {
+      'x-admin-session-token': sessionToken,
+    }
   }
 
-  console.log('✓ Sending host token:', HOST_PORTAL_TOKEN)
-  return {
-    'x-host-token': HOST_PORTAL_TOKEN,
+  if (HOST_PORTAL_TOKEN) {
+    return {
+      'x-host-token': HOST_PORTAL_TOKEN,
+    }
   }
+
+  return {}
+}
+
+export function getStoredAdminSessionToken() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.localStorage.getItem(ADMIN_SESSION_STORAGE_KEY) || ''
+}
+
+export function setStoredAdminSessionToken(sessionToken) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  if (!sessionToken) {
+    window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY)
+    return
+  }
+
+  window.localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, sessionToken)
+}
+
+export function clearStoredAdminSessionToken() {
+  setStoredAdminSessionToken('')
 }
 
 function inferContentType(file) {
@@ -271,4 +305,129 @@ export async function fetchPublishedArticleByStorageKey(storageKey) {
     posts.find((post) => String(post.articleFileUrl || '') === decodedStorageKey) ||
     null
   )
+}
+
+export async function updatePost(postId, payload) {
+  const response = await fetch(withBase(`/api/admin/posts/${encodeURIComponent(postId)}`), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHostHeaders(),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to update post.'))
+  }
+
+  const data = await response.json()
+  if (!data?.post) return data
+  return { ...data, post: mapPostRecord(data.post) }
+}
+
+export async function deletePost(postId) {
+  const response = await fetch(withBase(`/api/admin/posts/${encodeURIComponent(postId)}`), {
+    method: 'DELETE',
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to delete post.'))
+  }
+
+  const data = await response.json()
+  return data
+}
+
+export async function loginAdmin(email, secretKey) {
+  const response = await fetch(withBase('/api/admin/auth/login'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, secretKey }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to sign in.'))
+  }
+
+  const data = await response.json()
+  if (data?.sessionToken) {
+    setStoredAdminSessionToken(data.sessionToken)
+  }
+
+  return data
+}
+
+export async function fetchCurrentAdmin() {
+  const sessionToken = getStoredAdminSessionToken()
+  if (!sessionToken) {
+    return null
+  }
+
+  const response = await fetch(withBase('/api/admin/auth/me'), {
+    headers: {
+      'x-admin-session-token': sessionToken,
+    },
+  })
+
+  if (!response.ok) {
+    clearStoredAdminSessionToken()
+    return null
+  }
+
+  const data = await response.json()
+  return data?.adminUser || null
+}
+
+export async function fetchAdminUsers() {
+  const response = await fetch(withBase('/api/admin/users'), {
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to load admin users.'))
+  }
+
+  const data = await response.json()
+  return data
+}
+
+export async function deleteAdminUser(userId) {
+  const response = await fetch(withBase(`/api/admin/users/${encodeURIComponent(userId)}`), {
+    method: 'DELETE',
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to delete admin user.'))
+  }
+
+  const data = await response.json()
+  return data
+}
+
+export async function upsertAdminUser(email, secretKey) {
+  const response = await fetch(withBase('/api/admin/users'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHostHeaders(),
+    },
+    body: JSON.stringify({ email, secretKey }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to save admin user.'))
+  }
+
+  return response.json()
 }

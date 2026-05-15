@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAdminPosts } from '../../lib/fileApi'
-import '../../styles/analytics.css'
+import '../../styles/adminStyles/analytics.css'
+import LineChart from '../../components/admin/LineChart'
 
-function Analytics() {
+function Analytics({ onPageChange = () => {} }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -78,7 +79,13 @@ function Analytics() {
       </div>
 
       <div className="analytics-section">
-        <h2>Top Performing Posts</h2>
+        <LineChart apiBase={import.meta.env.VITE_API_BASE_URL || ''} days={30} />
+
+        <div className='analytics-details'>
+          <h2>Top Performing Posts</h2>
+          <button type="button" onClick={() => onPageChange('all-posts')}>View all posts</button>
+        </div>
+        
         {topPosts.length === 0 ? (
           <p className="analytics-empty">No published posts yet</p>
         ) : (

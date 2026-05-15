@@ -9,11 +9,16 @@ const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024
 const accessKeyCache = new Map()
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-host-token, cf-access-jwt-assertion',
-  'Access-Control-Max-Age': '86400',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-host-token, x-admin-session-token, cf-access-jwt-assertion',
+      'Access-Control-Max-Age': '86400',
 }
+
+const ADMIN_SESSION_DAYS = 30
+const DEFAULT_ADMIN_EMAIL = 'admin@gmail.com'
+const DEFAULT_ADMIN_SECRET = 'alex@1234'
+let adminAuthBootstrapPromise = null
 
 function jsonResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -134,6 +139,11 @@ async function isHostRequest(request, env) {
     return true
   }
 
+  const sessionToken = request.headers.get('x-admin-session-token')
+  if (sessionToken && (await getAdminUserBySessionToken(env, sessionToken))) {
+    return true
+  }
+
   const jwtAssertion = request.headers.get('cf-access-jwt-assertion')
   if (!jwtAssertion || !env.CF_ACCESS_TEAM_DOMAIN || !env.CF_ACCESS_AUDIENCE) {
     return false
@@ -181,6 +191,184 @@ async function digestHmac(secret, payload) {
   )
   const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))
   return [...new Uint8Array(signature)].map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+function randomHex(bytes = 16) {
+  const array = new Uint8Array(bytes)
+  crypto.getRandomValues(array)
+  return [...array].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+async function hashAdminSecret(secretKey, salt) {
+  return sha256Hex(`${salt}:${String(secretKey || '')}`)
+}
+
+async function ensureAdminAuthSchema(env) {
+  if (!adminAuthBootstrapPromise) {
+    adminAuthBootstrapPromise = (async () => {
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS admin_users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT NOT NULL UNIQUE,
+          secret_salt TEXT NOT NULL,
+          secret_hash TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run()
+
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS admin_sessions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          admin_user_id INTEGER NOT NULL,
+          session_token TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          last_used_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          expires_at TEXT NOT NULL,
+          FOREIGN KEY(admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE
+        )
+      `).run()
+
+      const defaultAdmin = await env.DB.prepare(`SELECT id FROM admin_users WHERE email = ?`).bind(DEFAULT_ADMIN_EMAIL).first()
+      if (!defaultAdmin) {
+        const salt = randomHex(16)
+        const hash = await hashAdminSecret(DEFAULT_ADMIN_SECRET, salt)
+        const now = new Date().toISOString()
+        await env.DB.prepare(
+          `INSERT INTO admin_users (email, secret_salt, secret_hash, is_active, created_at, updated_at)
+           VALUES (?, ?, ?, 1, ?, ?)`
+        )
+          .bind(DEFAULT_ADMIN_EMAIL, salt, hash, now, now)
+          .run()
+      }
+    })().catch((error) => {
+      adminAuthBootstrapPromise = null
+      throw error
+    })
+  }
+
+  return adminAuthBootstrapPromise
+}
+
+async function getAdminUserBySessionToken(env, sessionToken) {
+  if (!sessionToken) {
+    return null
+  }
+
+  await ensureAdminAuthSchema(env)
+
+  const row = await env.DB.prepare(
+    `SELECT
+        s.session_token AS sessionToken,
+        s.expires_at AS expiresAt,
+        u.id,
+        u.email,
+        u.is_active AS isActive,
+        u.created_at AS createdAt,
+        u.updated_at AS updatedAt
+     FROM admin_sessions s
+     JOIN admin_users u ON u.id = s.admin_user_id
+     WHERE s.session_token = ?`
+  ).bind(sessionToken).first()
+
+  if (!row || !row.isActive) {
+    return null
+  }
+
+  if (row.expiresAt && new Date(row.expiresAt).getTime() <= Date.now()) {
+    await env.DB.prepare(`DELETE FROM admin_sessions WHERE session_token = ?`).bind(sessionToken).run()
+    return null
+  }
+
+  await env.DB.prepare(`UPDATE admin_sessions SET last_used_at = ? WHERE session_token = ?`)
+    .bind(new Date().toISOString(), sessionToken)
+    .run()
+
+  return {
+    id: row.id,
+    email: row.email,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }
+}
+
+async function createAdminSession(env, adminUserId) {
+  await ensureAdminAuthSchema(env)
+
+  const sessionToken = randomHex(32)
+  const now = new Date().toISOString()
+  const expiresAt = new Date(Date.now() + ADMIN_SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+
+  await env.DB.prepare(
+    `INSERT INTO admin_sessions (admin_user_id, session_token, created_at, last_used_at, expires_at)
+     VALUES (?, ?, ?, ?, ?)`
+  )
+    .bind(adminUserId, sessionToken, now, now, expiresAt)
+    .run()
+
+  return { sessionToken, expiresAt }
+}
+
+async function upsertAdminUser(env, email, secretKey) {
+  await ensureAdminAuthSchema(env)
+
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  if (!normalizedEmail || !secretKey) {
+    throw new Error('email and secretKey are required.')
+  }
+
+  const salt = randomHex(16)
+  const hash = await hashAdminSecret(secretKey, salt)
+  const now = new Date().toISOString()
+
+  const existing = await env.DB.prepare(`SELECT id FROM admin_users WHERE email = ?`).bind(normalizedEmail).first()
+
+  if (existing) {
+    await env.DB.prepare(
+      `UPDATE admin_users
+       SET secret_salt = ?, secret_hash = ?, is_active = 1, updated_at = ?
+       WHERE email = ?`
+    ).bind(salt, hash, now, normalizedEmail).run()
+
+    await env.DB.prepare(`DELETE FROM admin_sessions WHERE admin_user_id = ?`).bind(existing.id).run()
+    return { id: existing.id, email: normalizedEmail, updatedAt: now }
+  }
+
+  return env.DB.prepare(
+    `INSERT INTO admin_users (email, secret_salt, secret_hash, is_active, created_at, updated_at)
+     VALUES (?, ?, ?, 1, ?, ?)
+     RETURNING id, email, created_at AS createdAt, updated_at AS updatedAt`
+  )
+    .bind(normalizedEmail, salt, hash, now, now)
+    .first()
+}
+
+async function authenticateAdminCredentials(env, email, secretKey) {
+  await ensureAdminAuthSchema(env)
+
+  const normalizedEmail = String(email || '').trim().toLowerCase()
+  const row = await env.DB.prepare(
+    `SELECT id, email, secret_salt AS secretSalt, secret_hash AS secretHash, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+     FROM admin_users
+     WHERE email = ?`
+  ).bind(normalizedEmail).first()
+
+  if (!row || !row.isActive) {
+    return null
+  }
+
+  const computedHash = await hashAdminSecret(secretKey, row.secretSalt)
+  if (computedHash !== row.secretHash) {
+    return null
+  }
+
+  return { id: row.id, email: row.email, createdAt: row.createdAt, updatedAt: row.updatedAt }
 }
 
 async function signUploadToken(secret, key, contentType, expiresAt) {
@@ -308,6 +496,98 @@ export default {
         status: 204,
         headers: CORS_HEADERS,
       })
+    }
+
+    if (request.method === 'POST' && url.pathname === '/api/admin/auth/login') {
+      await ensureAdminAuthSchema(env)
+
+      let payload = {}
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      const email = String(payload?.email || '').trim().toLowerCase()
+      const secretKey = String(payload?.secretKey || '')
+
+      if (!email || !secretKey) {
+        return jsonResponse({ message: 'email and secretKey are required.' }, 400)
+      }
+
+      const adminUser = await authenticateAdminCredentials(env, email, secretKey)
+      if (!adminUser) {
+        return jsonResponse({ message: 'Invalid email or secret key.' }, 401)
+      }
+
+      const session = await createAdminSession(env, adminUser.id)
+      return jsonResponse({
+        adminUser,
+        sessionToken: session.sessionToken,
+        expiresAt: session.expiresAt,
+      })
+    }
+
+    if (request.method === 'GET' && url.pathname === '/api/admin/auth/me') {
+      const sessionToken = request.headers.get('x-admin-session-token')
+      const adminUser = await getAdminUserBySessionToken(env, sessionToken)
+
+      if (!adminUser) {
+        return jsonResponse({ message: 'Unauthorized' }, 401)
+      }
+
+      return jsonResponse({ adminUser })
+    }
+
+    if (url.pathname === '/api/admin/users' && request.method === 'GET') {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      await ensureAdminAuthSchema(env)
+      const rows = await env.DB.prepare(
+        `SELECT id, email, is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+         FROM admin_users
+         ORDER BY created_at DESC`
+      ).all()
+
+      return jsonResponse({ users: rows.results || [] })
+    }
+
+    if (url.pathname === '/api/admin/users' && request.method === 'POST') {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      let payload = {}
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      if (!payload?.email || !payload?.secretKey) {
+        return jsonResponse({ message: 'email and secretKey are required.' }, 400)
+      }
+
+      const user = await upsertAdminUser(env, payload.email, payload.secretKey)
+      return jsonResponse({ user }, 201)
+    }
+
+    if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/users/')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const idStr = decodeURIComponent(url.pathname.replace('/api/admin/users/', ''))
+      const userId = Number(idStr)
+      if (!Number.isFinite(userId)) {
+        return jsonResponse({ message: 'Invalid user id.' }, 400)
+      }
+
+      await ensureAdminAuthSchema(env)
+      await env.DB.prepare(`DELETE FROM admin_users WHERE id = ?`).bind(userId).run()
+      return jsonResponse({ success: true })
     }
 
     if (request.method === 'POST' && url.pathname === '/api/admin/uploads/presign') {
@@ -640,6 +920,84 @@ export default {
       return jsonResponse({ post: mapPostRow(result) }, 201)
     }
 
+    // Update post
+    if (request.method === 'PUT' && url.pathname.startsWith('/api/admin/posts/')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const id = Number(url.pathname.replace('/api/admin/posts/', ''))
+      if (!id) return jsonResponse({ message: 'Invalid post id' }, 400)
+
+      let payload = {}
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      const postType = normalizePostType(payload?.postType)
+      const title = String(payload?.title || '').trim()
+      const excerpt = String(payload?.excerpt || '').trim()
+      const content = String(payload?.content || '').trim()
+      const status = normalizePostStatus(payload?.status)
+      const articleFileUrl = payload?.articleFileUrl ? String(payload.articleFileUrl) : null
+      const articleStorageKey = payload?.articleStorageKey ? String(payload.articleStorageKey) : null
+      const coverImageUrl = payload?.coverImageUrl ? String(payload.coverImageUrl) : null
+      const articleLayout = normalizeArticleLayout(payload?.articleLayout)
+      const articleImageUrls = parseJsonArray(payload?.articleImageUrls)
+
+      if (!postType) {
+        return jsonResponse({ message: 'postType must be article or blog.' }, 400)
+      }
+
+      if (!title) {
+        return jsonResponse({ message: 'title is required.' }, 400)
+      }
+
+      await env.DB.prepare(
+        `UPDATE posts SET
+           post_type = ?, title = ?, excerpt = ?, content = ?, status = ?,
+           article_file_url = ?, article_storage_key = ?, cover_image_url = ?,
+           article_layout = ?, article_image_urls = ?, updated_at = ?
+         WHERE id = ?`
+      )
+        .bind(
+          postType,
+          title,
+          excerpt || null,
+          content || null,
+          status,
+          articleFileUrl,
+          articleStorageKey,
+          coverImageUrl,
+          articleLayout,
+          JSON.stringify(articleImageUrls),
+          new Date().toISOString(),
+          id
+        )
+        .run()
+
+      const updated = await env.DB.prepare(
+        `SELECT id, post_type AS postType, title, excerpt, content, status, article_file_url AS articleFileUrl, article_storage_key AS articleStorageKey, cover_image_url AS coverImageUrl, article_layout AS articleLayout, article_image_urls AS articleImageUrls, author_id AS authorId, view_count AS viewCount, created_at AS createdAt, updated_at AS updatedAt FROM posts WHERE id = ?`
+      ).bind(id).first()
+
+      return jsonResponse({ post: mapPostRow(updated) })
+    }
+
+    // Delete post
+    if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/posts/')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const id = Number(url.pathname.replace('/api/admin/posts/', ''))
+      if (!id) return jsonResponse({ message: 'Invalid post id' }, 400)
+
+      await env.DB.prepare(`DELETE FROM posts WHERE id = ?`).bind(id).run()
+      return jsonResponse({ message: 'Deleted' })
+    }
+
     if (request.method === 'GET' && url.pathname === '/api/posts') {
       const typeFilter = normalizePostType(url.searchParams.get('type'))
       const query = typeFilter
@@ -689,6 +1047,57 @@ export default {
         : await env.DB.prepare(query).all()
 
       return jsonResponse({ posts: (rows.results || []).map(mapPostRow) })
+    }
+
+    // Analytics snapshots
+    if (url.pathname === '/api/analytics/snapshots' && request.method === 'POST') {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      let body = {}
+      try {
+        body = await request.json()
+      } catch {
+        // ignore
+      }
+
+      const dateParam = body?.date || new Date().toISOString().slice(0, 10)
+
+      // Compute total views across posts and files
+      const totalViewsRow = await env.DB.prepare(`SELECT SUM(COALESCE(view_count,0)) AS total FROM posts`).first()
+      const fileViewsRow = await env.DB.prepare(`SELECT SUM(COALESCE(view_count,0)) AS total FROM uploaded_files`).first()
+      const totalViews = (Number(totalViewsRow?.total || 0) + Number(fileViewsRow?.total || 0)) || 0
+
+      // Compute new posts for the day
+      const newPostsRow = await env.DB.prepare(
+        `SELECT COUNT(*) AS total FROM posts WHERE date(created_at) = ?`
+      ).bind(dateParam).first()
+      const newPosts = Number(newPostsRow?.total || 0)
+
+      await env.DB.prepare(
+        `INSERT INTO analytics_snapshots (date, total_views, new_posts, created_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(date) DO UPDATE SET total_views = excluded.total_views, new_posts = excluded.new_posts`
+      )
+        .bind(dateParam, totalViews, newPosts, new Date().toISOString())
+        .run()
+
+      const inserted = await env.DB.prepare(`SELECT date, total_views AS totalViews, new_posts AS newPosts FROM analytics_snapshots WHERE date = ?`).bind(dateParam).first()
+      return jsonResponse({ snapshot: inserted || { date: dateParam, totalViews, newPosts } })
+    }
+
+    if (url.pathname === '/api/analytics/snapshots' && request.method === 'GET') {
+      const days = Number(url.searchParams.get('days') || 30)
+      const rows = await env.DB.prepare(
+        `SELECT date, total_views AS totalViews, new_posts AS newPosts
+         FROM analytics_snapshots
+         ORDER BY date DESC
+         LIMIT ?`
+      ).bind(days).all()
+
+      const results = (rows.results || []).map((r) => ({ date: r.date, totalViews: Number(r.totalViews || 0), newPosts: Number(r.newPosts || 0) }))
+      return jsonResponse({ snapshots: results })
     }
 
     return jsonResponse({ message: 'Not found' }, 404)

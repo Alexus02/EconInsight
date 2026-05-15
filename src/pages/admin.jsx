@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from 'react'
-import { fetchUploadedFiles, fetchAdminPosts, createPost } from '../lib/fileApi'
+import {
+  fetchUploadedFiles,
+  fetchAdminPosts,
+  createPost,
+  fetchCurrentAdmin,
+  loginAdmin,
+  clearStoredAdminSessionToken,
+  deletePost as deleteAdminPost,
+  updatePost as updateAdminPost,
+} from '../lib/fileApi'
 import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminPreview from '../components/admin/AdminPreview'
+import AdminLogin from '../components/admin/AdminLogin'
 import Dashboard from './adminPages/Dashboard'
 import Posts from './adminPages/Posts'
 import Analytics from './adminPages/Analytics'
+import AllPosts from './adminPages/AllPosts'
 import Settings from './adminPages/Settings'
-import '../styles/admin.css'
+import '../styles/adminStyles/admin.css'
 
 function Admin() {
+  const [authLoading, setAuthLoading] = useState(true)
+  const [currentAdmin, setCurrentAdmin] = useState(null)
+  const [loginEmail, setLoginEmail] = useState('admin@gmail.com')
+  const [loginSecretKey, setLoginSecretKey] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loginSubmitting, setLoginSubmitting] = useState(false)
   const [activePage, setActivePage] = useState('dashboard')
   const [postType, setPostType] = useState('article')
   const [title, setTitle] = useState('')
@@ -25,13 +42,48 @@ function Admin() {
   const [statusMessage, setStatusMessage] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingPostId, setEditingPostId] = useState(null)
   const [allPosts, setAllPosts] = useState([])
   const [postsLoading, setPostsLoading] = useState(false)
   const [trackFilter, setTrackFilter] = useState('all')
-  
 
   useEffect(() => {
     let active = true
+
+    async function bootstrapAuth() {
+      try {
+        const admin = await fetchCurrentAdmin()
+        if (!active) return
+
+        if (admin) {
+          setCurrentAdmin(admin)
+        } else {
+          clearStoredAdminSessionToken()
+        }
+      } catch (err) {
+        console.error('Failed to load admin session', err)
+        clearStoredAdminSessionToken()
+      } finally {
+        if (active) {
+          setAuthLoading(false)
+        }
+      }
+    }
+
+    bootstrapAuth()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!currentAdmin) {
+      return
+    }
+
+    let active = true
+
     async function loadFiles() {
       try {
         const filesResult = await fetchUploadedFiles()
@@ -44,9 +96,8 @@ function Admin() {
 
     loadFiles()
 
-    const onFileUploaded = (e) => {
-      const file = e?.detail || null
-      // refresh list
+    const onFileUploaded = (event) => {
+      const file = event?.detail || null
       loadFiles()
       if (file?.url) {
         pickDoc(file)
@@ -58,13 +109,15 @@ function Admin() {
       active = false
       window.removeEventListener('file:uploaded', onFileUploaded)
     }
-  }, [])
+  }, [currentAdmin])
 
   const loadAdminPosts = async () => {
     setPostsLoading(true)
     try {
       const data = await fetchAdminPosts()
-      const posts = (data.posts || []).sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
+      const posts = (data.posts || []).sort(
+        (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
+      )
       setAllPosts(posts)
     } catch (err) {
       console.error('Failed to load admin posts:', err)
@@ -74,17 +127,15 @@ function Admin() {
   }
 
   useEffect(() => {
-    loadAdminPosts()
-  }, [])
+    if (currentAdmin) {
+      loadAdminPosts()
+    }
+  }, [currentAdmin])
 
   const pickDoc = (file) => {
     setSelectedDocUrl(file.url)
     setSelectedDocKey(file.storageKey || '')
     setSelectedDocLabel(file.filename || file.url)
-  }
-
-  const toggleImageSelection = (url) => {
-    setSelectedImageUrls((current) => (current.includes(url) ? current.filter((u) => u !== url) : [...current, url]))
   }
 
   const submitPost = async (status = 'published') => {
@@ -111,13 +162,18 @@ function Admin() {
         content: postType === 'blog' ? (content.trim() || null) : null,
         articleFileUrl: selectedDocUrl || null,
         articleStorageKey: selectedDocKey || null,
-          coverImageUrl: selectedImageUrls[0] || null,
-          articleImageUrls: selectedImageUrls,
-          articleLayout,
-        authorId: 'host',
+        coverImageUrl: selectedImageUrls[0] || null,
+        articleImageUrls: selectedImageUrls,
+        articleLayout,
+        authorId: currentAdmin?.email || 'host',
       }
 
-      await createPost(payload)
+      if (editingPostId) {
+        await updateAdminPost(editingPostId, payload)
+      } else {
+        await createPost(payload)
+      }
+
       setStatusMessage(status === 'draft' ? 'Draft saved successfully.' : 'Post published successfully.')
       setTitle('')
       setCategory('')
@@ -128,6 +184,7 @@ function Admin() {
       setSelectedDocLabel('')
       setSelectedImageUrls([])
       setArticleLayout('default')
+      setEditingPostId(null)
       await loadAdminPosts()
     } catch (err) {
       setError(err.message || 'Failed to create post')
@@ -136,10 +193,59 @@ function Admin() {
     }
   }
 
-  const selectedFile = uploadedFiles.find((f) => f.url === selectedDocUrl)
-  const previewLabel = postType === 'article' ? 'Research article' : 'Blog post'
-  const previewBody = postType === 'blog' ? (content || 'Your blog body will appear here.') : (content || 'No body is required for an article.')
-  const previewExcerpt = postType === 'blog' ? excerpt : 'Excerpt is not required for research articles.'
+  const editPost = (post) => {
+    setEditingPostId(post.id)
+    setPostType(post.post_type || post.postType || 'article')
+    setTitle(post.title || '')
+    setExcerpt(post.excerpt || '')
+    setContent(post.content || '')
+    setSelectedDocUrl(post.articleFileUrl || '')
+    setSelectedDocKey(post.articleStorageKey || '')
+    setSelectedDocLabel(post.articleFileUrl || '')
+    setSelectedImageUrls(post.articleImageUrls || [])
+    setArticleLayout(post.articleLayout || 'default')
+    setActivePage('posts')
+  }
+
+  const deletePost = async (post) => {
+    try {
+      await deleteAdminPost(post.id)
+      await loadAdminPosts()
+    } catch (err) {
+      console.error('Failed to delete post', err)
+    }
+  }
+
+  const handleAdminLogin = async (event) => {
+    event.preventDefault()
+    setLoginError('')
+    setLoginSubmitting(true)
+
+    try {
+      const response = await loginAdmin(loginEmail, loginSecretKey)
+      setCurrentAdmin(response.adminUser || { email: loginEmail })
+      setLoginSecretKey('')
+      setActivePage('dashboard')
+    } catch (err) {
+      setLoginError(err.message || 'Unable to sign in.')
+    } finally {
+      setLoginSubmitting(false)
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogout = () => {
+    clearStoredAdminSessionToken()
+    setCurrentAdmin(null)
+    setUploadedFiles([])
+    setAllPosts([])
+    setLoginSecretKey('')
+    setLoginError('')
+    setActivePage('dashboard')
+  }
+
+  const selectedFile = uploadedFiles.find((file) => file.url === selectedDocUrl)
+
   const filteredPosts = allPosts.filter((post) => {
     const postStatus = String(post.status || 'published').toLowerCase()
     if (trackFilter === 'all') return true
@@ -172,9 +278,33 @@ function Admin() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isPreviewOpen])
 
+  if (authLoading) {
+    return (
+      <section className="admin-page">
+        <div className="admin-main" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
+          Loading admin access...
+        </div>
+      </section>
+    )
+  }
+
+  if (!currentAdmin) {
+    return (
+      <AdminLogin
+        email={loginEmail}
+        secretKey={loginSecretKey}
+        loading={loginSubmitting}
+        error={loginError}
+        onEmailChange={setLoginEmail}
+        onSecretKeyChange={setLoginSecretKey}
+        onSubmit={handleAdminLogin}
+      />
+    )
+  }
+
   return (
     <section className="admin-page">
-      <AdminSidebar activePage={activePage} onPageChange={setActivePage} />
+      <AdminSidebar activePage={activePage} onPageChange={setActivePage} currentAdmin={currentAdmin} onLogout={handleLogout} />
 
       <div className="admin-main">
         {activePage === 'dashboard' && <Dashboard stats={stats} recentPosts={recentPosts} />}
@@ -204,10 +334,13 @@ function Admin() {
             onContentChange={setContent}
             onCategoryChange={setCategory}
             onDocLabelChange={(val) => setSelectedDocLabel(val)}
-            onDocBlur={(e) => {
-              const val = e.target.value
-              const found = uploadedFiles.find((f) => f.filename === val || f.url === val)
-              if (found && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(found.contentType)) {
+            onDocBlur={(event) => {
+              const val = event.target.value
+              const found = uploadedFiles.find((file) => file.filename === val || file.url === val)
+              if (
+                found &&
+                ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(found.contentType)
+              ) {
                 pickDoc(found)
               }
             }}
@@ -217,13 +350,13 @@ function Admin() {
                 pickDoc(file)
               }
               fetchUploadedFiles()
-                .then((r) => setUploadedFiles(Array.isArray(r) ? r : r.files || []))
+                .then((result) => setUploadedFiles(Array.isArray(result) ? result : result.files || []))
                 .catch(() => {})
             }}
             onCoverImageChange={(url) => setSelectedImageUrls([url, ...selectedImageUrls.slice(1)])}
             onRemoveCoverImage={() => setSelectedImageUrls(selectedImageUrls.slice(1))}
-            onSubmit={(ev) => {
-              ev.preventDefault()
+            onSubmit={(event) => {
+              event.preventDefault()
               submitPost('published')
             }}
             onSaveDraft={() => submitPost('draft')}
@@ -232,8 +365,9 @@ function Admin() {
           />
         )}
 
-        {activePage === 'analytics' && <Analytics />}
-        {activePage === 'settings' && <Settings />}
+        {activePage === 'analytics' && <Analytics onPageChange={setActivePage} />}
+        {activePage === 'all-posts' && <AllPosts posts={allPosts} onEditPost={editPost} onDeletePost={deletePost} />}
+        {activePage === 'settings' && <Settings currentAdmin={currentAdmin} />}
       </div>
 
       <AdminPreview

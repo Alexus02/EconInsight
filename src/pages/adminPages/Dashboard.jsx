@@ -1,16 +1,15 @@
 import React from 'react'
 import AdminStats from '../../components/admin/AdminStats'
-import '../../styles/analytics.css'
+import '../../styles/adminStyles/dashboard.css'
 
 function Dashboard({ stats, recentPosts }) {
   return (
     <div className="admin-page-content">
-      <header className="admin-header admin-header--dashboard">
+      <header className="admin-header--dashboard">
         <h1>Content Dashboard</h1>
-        <button type="button" className="admin-new-post">+ New Post</button>
+        <AdminStats stats={stats} />
       </header>
 
-      <AdminStats stats={stats} />
 
       <div className="analytics-section">
         <h2>Recent Activity</h2>
