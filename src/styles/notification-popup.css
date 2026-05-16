@@ -13,6 +13,18 @@
   display: flex;
   gap: 14px;
   align-items: start;
+  animation: notification-pop 180ms ease-out;
+}
+
+@keyframes notification-pop {
+  from {
+    transform: translateY(-8px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .notification-popup--success {
@@ -21,6 +33,26 @@
 
 .notification-popup--error {
   border-left: 6px solid #b00020;
+}
+
+.notification-popup__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-weight: 800;
+}
+
+.notification-popup__icon--success {
+  background: rgba(39, 119, 131, 0.12);
+  color: #277783;
+}
+
+.notification-popup__icon--error {
+  background: rgba(176, 0, 32, 0.12);
+  color: #b00020;
 }
 
 .notification-popup__body {

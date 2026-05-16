@@ -156,8 +156,6 @@ const AdminPostForm = ({
             </label>
           ) : null}
 
-          {statusMessage ? <p className="admin-status admin-status--ok">{statusMessage}</p> : null}
-          {error ? <p className="admin-status admin-status--error">{error}</p> : null}
         </div>
       )}
 
@@ -169,12 +167,22 @@ const AdminPostForm = ({
           {/* Images Upload */}
           <div className="media-section">
             <div className="media-section__header">
-              <h3>Upload Images</h3>
-              <p>Add images to your post (optional)</p>
+              <h3>Image assets</h3>
+              <p>Upload cover photos and inline images. This section only accepts image files.</p>
             </div>
 
             <div className="media-actions">
-              <FileUpload uploaderId="host" onUploaded={onFileUpload} label="Upload Image" />
+              <FileUpload
+                uploaderId="host"
+                onUploaded={onFileUpload}
+                label="Upload Images"
+                title="Add post images"
+                kicker="Cover photo + inline media"
+                hint="Choose JPG, PNG, or JPEG files. These become your visual assets."
+                badge="Images only"
+                variant="images"
+                accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+              />
             </div>
 
             {uploadedFiles.filter((f) => f.contentType?.startsWith('image/')).length > 0 && (
@@ -197,8 +205,8 @@ const AdminPostForm = ({
           {/* Cover Photo Selection */}
           <div className="media-section">
             <div className="media-section__header">
-              <h3>Select Cover Photo</h3>
-              <p>Choose the image to display as the post cover</p>
+              <h3>Cover photo</h3>
+              <p>Select one image to feature at the top of the post.</p>
             </div>
 
             {uploadedFiles.filter((f) => f.contentType?.startsWith('image/')).length > 0 ? (
@@ -244,12 +252,22 @@ const AdminPostForm = ({
           {/* Document Upload */}
           <div className="media-section">
             <div className="media-section__header">
-              <h3>Upload Document</h3>
-              <p>Upload research article, whitepaper, or supporting document (optional)</p>
+              <h3>Document file</h3>
+              <p>Upload the PDF or DOC/DOCX attachment for readers to preview and download.</p>
             </div>
 
             <div className="media-actions">
-              <FileUpload uploaderId="host" onUploaded={onFileUpload} label="Upload Document" />
+              <FileUpload
+                uploaderId="host"
+                onUploaded={onFileUpload}
+                label="Upload Document"
+                title="Add article file"
+                kicker="PDF / DOC uploads"
+                hint="Choose PDF, DOC, or DOCX files. This section is for document attachments only."
+                badge="Documents only"
+                variant="documents"
+                accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx"
+              />
             </div>
 
             <label className="form-field">
@@ -274,7 +292,13 @@ const AdminPostForm = ({
             {selectedDocUrl ? (
               <div className="document-preview">
                 {selectedFile?.contentType === 'application/pdf' || selectedDocUrl.endsWith('.pdf') ? (
-                  <PDFPreview title={selectedFile?.filename || 'preview'} url={selectedDocUrl} className="document-preview__pdf" />
+                  <PDFPreview
+                    title={selectedFile?.filename || 'preview'}
+                    url={selectedDocUrl}
+                    className="document-preview__pdf"
+                    showControls={false}
+                    showTextSnippet={false}
+                  />
                 ) : (
                   <div className="document-preview__info">Selected: {selectedFile?.filename || selectedDocUrl}</div>
                 )}
@@ -453,8 +477,6 @@ const AdminPostForm = ({
             </div>
           </div>
 
-          {statusMessage ? <p className="admin-status admin-status--ok">{statusMessage}</p> : null}
-          {error ? <p className="admin-status admin-status--error">{error}</p> : null}
         </div>
       )}
 

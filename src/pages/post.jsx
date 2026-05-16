@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { fetchPublishedPostById, recordView } from '../lib/fileApi'
 import '../styles/article-viewer.css'
 import PdfActionsCard from '../components/PdfActionsCard'
+import CoverPhoto from '../components/CoverPhoto'
 
 function Post() {
   const { id } = useParams()
@@ -46,12 +47,7 @@ function Post() {
           <header className="article-header">
             {post.coverImageUrl && (
               <div className="article-cover">
-                <img
-                  src={post.coverImageUrl}
-                  alt={post.title}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <CoverPhoto src={post.coverImageUrl} alt={post.title} />
               </div>
             )}
             <p className="library-kicker">{post.postType === 'article' ? 'Research article' : 'Blog post'}</p>

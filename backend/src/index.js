@@ -1038,6 +1038,44 @@ export default {
 
       const object = await env.RESEARCH_BUCKET.get(key)
       if (!object) {
+        // If a newer R2 key was referenced but the underlying object was not
+        // present yet, try to resolve a matching uploaded file by filename so
+        // PDFs keep working instead of surfacing a hard 404.
+        const storageKeyName = key.split('/').pop() || ''
+        const storageKeySuffix = storageKeyName.replace(/^\d+-/, '')
+
+        if (storageKeySuffix) {
+          const fallback = await env.DB.prepare(
+            `SELECT storage_key AS storageKey
+             FROM uploaded_files
+             WHERE LOWER(storage_key) LIKE LOWER(?)
+             ORDER BY uploaded_at DESC
+             LIMIT 1`
+          )
+            .bind(`%${storageKeySuffix}`)
+            .first()
+
+          if (fallback?.storageKey && fallback.storageKey !== key) {
+            const fallbackObject = await env.RESEARCH_BUCKET.get(fallback.storageKey)
+            if (fallbackObject) {
+              const headers = new Headers()
+              fallbackObject.writeHttpMetadata(headers)
+              headers.set('etag', fallbackObject.httpEtag)
+              headers.set('cache-control', 'public, max-age=300')
+              headers.set('x-content-type-options', 'nosniff')
+              headers.set('Access-Control-Allow-Origin', CORS_HEADERS['Access-Control-Allow-Origin'])
+              headers.set('Access-Control-Allow-Methods', CORS_HEADERS['Access-Control-Allow-Methods'])
+              headers.set('Access-Control-Allow-Headers', CORS_HEADERS['Access-Control-Allow-Headers'])
+              headers.set('Access-Control-Max-Age', CORS_HEADERS['Access-Control-Max-Age'])
+
+              return new Response(fallbackObject.body, {
+                status: 200,
+                headers,
+              })
+            }
+          }
+        }
+
         // Developer convenience: if a specific test key is requested but not
         // present in local R2, redirect to a public sample PDF so the frontend
         // can render something during local development.

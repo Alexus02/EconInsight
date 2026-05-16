@@ -315,15 +315,44 @@
   border: 1px dashed rgba(17, 17, 17, 0.12);
 }
 
+.cover-photo-placeholder {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  min-height: 240px;
+}
+
+.cover-photo-placeholder__icon {
+  width: 120px;
+  height: 120px;
+  display: block;
+}
+
 .document-preview {
   padding: 16px;
   background: #fff;
   border-radius: 6px;
   border: 1px solid rgba(17, 17, 17, 0.08);
+  overflow: hidden;
 }
 
 .document-preview__pdf {
-  max-height: 300px;
+  max-height: 240px;
+  overflow: hidden;
+}
+
+.document-preview__pdf .pdf-preview__canvas-wrap {
+  max-height: 180px;
+  overflow: auto;
+}
+
+.document-preview__pdf .pdf-preview__canvas {
+  max-width: 100%;
+}
+
+.document-preview__pdf .pdf-preview__controls,
+.document-preview__pdf .pdf-preview__text {
+  display: none;
 }
 
 .document-preview__info {

@@ -882,6 +882,35 @@ var src_default = {
       }
       const object = await env.RESEARCH_BUCKET.get(key);
       if (!object) {
+        const storageKeyName = key.split("/").pop() || "";
+        const storageKeySuffix = storageKeyName.replace(/^\d+-/, "");
+        if (storageKeySuffix) {
+          const fallback = await env.DB.prepare(
+            `SELECT storage_key AS storageKey
+             FROM uploaded_files
+             WHERE LOWER(storage_key) LIKE LOWER(?)
+             ORDER BY uploaded_at DESC
+             LIMIT 1`
+          ).bind(`%${storageKeySuffix}`).first();
+          if (fallback?.storageKey && fallback.storageKey !== key) {
+            const fallbackObject = await env.RESEARCH_BUCKET.get(fallback.storageKey);
+            if (fallbackObject) {
+              const headers2 = new Headers();
+              fallbackObject.writeHttpMetadata(headers2);
+              headers2.set("etag", fallbackObject.httpEtag);
+              headers2.set("cache-control", "public, max-age=300");
+              headers2.set("x-content-type-options", "nosniff");
+              headers2.set("Access-Control-Allow-Origin", CORS_HEADERS["Access-Control-Allow-Origin"]);
+              headers2.set("Access-Control-Allow-Methods", CORS_HEADERS["Access-Control-Allow-Methods"]);
+              headers2.set("Access-Control-Allow-Headers", CORS_HEADERS["Access-Control-Allow-Headers"]);
+              headers2.set("Access-Control-Max-Age", CORS_HEADERS["Access-Control-Max-Age"]);
+              return new Response(fallbackObject.body, {
+                status: 200,
+                headers: headers2
+              });
+            }
+          }
+        }
         if (String(key).includes("econsinsite_test_02") || String(key).endsWith("econsinsite_test_02.pdf")) {
           try {
             const publicUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";

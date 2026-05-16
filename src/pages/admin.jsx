@@ -17,6 +17,7 @@ import {
 import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminPreview from '../components/admin/AdminPreview'
 import AdminLogin from '../components/admin/AdminLogin'
+import NotificationPopup from '../components/NotificationPopup'
 import SkeletonLoader from '../components/SkeletonLoader'
 import Dashboard from './adminPages/Dashboard'
 import Posts from './adminPages/Posts'
@@ -49,6 +50,7 @@ function Admin() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [error, setError] = useState('')
+  const [notification, setNotification] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingPostId, setEditingPostId] = useState(null)
   const [allPosts, setAllPosts] = useState([])
@@ -182,9 +184,22 @@ function Admin() {
     }
   }, [currentAdmin])
 
+  useEffect(() => {
+    if (!notification) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => {
+      setNotification(null)
+    }, 4500)
+
+    return () => window.clearTimeout(timer)
+  }, [notification])
+
   const submitPost = async (status = 'published') => {
     setError('')
     setStatusMessage('')
+    setNotification(null)
 
     if (!title.trim()) {
       setError('Title is required.')
@@ -218,7 +233,13 @@ function Admin() {
         await createPost(payload)
       }
 
-      setStatusMessage(status === 'draft' ? 'Draft saved successfully.' : 'Post published successfully.')
+      const successMessage = status === 'draft' ? 'Draft saved successfully.' : 'Post published successfully.'
+      setStatusMessage(successMessage)
+      setNotification({
+        type: 'success',
+        title: status === 'draft' ? 'Draft saved' : 'Post published',
+        message: successMessage,
+      })
       setTitle('')
       setCategory('')
       setExcerpt('')
@@ -231,7 +252,13 @@ function Admin() {
       setEditingPostId(null)
       await loadAdminPosts()
     } catch (err) {
-      setError(err.message || 'Failed to create post')
+      const message = err.message || 'Failed to create post'
+      setError(message)
+      setNotification({
+        type: 'error',
+        title: 'Publish failed',
+        message,
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -358,6 +385,15 @@ function Admin() {
 
   return (
     <section className="admin-page">
+      {notification ? (
+        <NotificationPopup
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
+      ) : null}
+
       <AdminSidebar activePage={activePage} onPageChange={setActivePage} currentAdmin={currentAdmin} onLogout={handleLogout} />
 
       <div className="admin-main">

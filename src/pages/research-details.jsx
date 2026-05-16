@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { fetchPublishedPostById, fetchPublishedPosts, recordView } from '../lib/fileApi'
 import '../styles/article-viewer.css'
+import CoverPhoto from '../components/CoverPhoto'
 
 function ResearchDetails() {
   const { id } = useParams()
@@ -92,7 +93,7 @@ function ResearchDetails() {
 
             {post.coverImageUrl ? (
               <div className="article-cover article-cover--detail">
-                <img src={post.coverImageUrl} alt={post.title} className="article-cover__image" />
+                <CoverPhoto src={post.coverImageUrl} alt={post.title} className="article-cover__image" />
               </div>
             ) : null}
 
