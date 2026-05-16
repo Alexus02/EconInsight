@@ -46,6 +46,17 @@
   text-decoration: none;
 }
 
+.site-footer__socials a svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.site-footer__socials a:hover {
+  background: rgba(17, 17, 17, 0.12);
+  color: #3b82f6;
+}
+
 .site-footer__columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

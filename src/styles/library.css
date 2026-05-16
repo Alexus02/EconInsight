@@ -296,6 +296,21 @@
   transform: translateY(-2px);
 }
 
+.research-card--skeleton {
+  pointer-events: none;
+}
+
+.research-card--skeleton:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.research-card__skeleton-media {
+  width: 100%;
+  height: 180px;
+  border-radius: 0;
+}
+
 .research-card__media {
   width: 100%;
   height: 180px;
@@ -381,5 +396,14 @@
 
   .research-card__content {
     padding: 1rem;
+  }
+
+  .research-card {
+    border-radius: 10px;
+  }
+
+  .research-card__media,
+  .placeholder-image.placeholder-small {
+    height: 160px;
   }
 }

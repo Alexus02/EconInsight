@@ -1,0 +1,89 @@
+.pdf-viewer-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.pdf-toolbar button {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pdf-toolbar .spacer {
+  flex: 1 1 auto;
+}
+
+.pdf-container {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(#fff, #f8f9fb);
+}
+
+.pdf-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  justify-content: center;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(0,0,0,0.08);
+  border-top-color: #2b6cb0;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.pdf-page-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.pdf-page-canvas {
+  box-shadow: 0 6px 18px rgba(24,24,24,0.06);
+  border-radius: 6px;
+}
+
+.page-skeleton {
+  width: 100%;
+  max-width: 900px;
+  height: 1200px; /* reasonable placeholder height for PDFs */
+  background: linear-gradient(90deg, #f2f4f7 25%, #e9eef6 50%, #f2f4f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+
+/* Make the Page canvas responsive within max width */
+.react-pdf__Page__canvas {
+  display: block;
+  max-width: 900px;
+  width: 100% !important;
+  height: auto !important;
+}

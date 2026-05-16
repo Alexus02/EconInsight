@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAdminUsers, upsertAdminUser, deleteAdminUser } from '../../lib/fileApi'
 import '../../styles/adminStyles/settings.css'
+import SkeletonLoader from '../../components/SkeletonLoader'
 
 function Settings({ currentAdmin = null }) {
   const [adminUsers, setAdminUsers] = useState([])
@@ -126,7 +127,22 @@ function Settings({ currentAdmin = null }) {
         <div className="settings-admin-list">
           <div className="settings-admin-list__header">Allowed admins</div>
           {adminUsersLoading ? (
-            <div className="settings-admin-list__empty">Loading admin users...</div>
+            <div className="settings-admin-list__skeleton" aria-label="Loading admin users">
+              <div className="settings-admin-list__skeleton-item">
+                <div className="settings-admin-list__skeleton-main">
+                  <SkeletonLoader variant="text" style={{ width: '220px' }} />
+                  <SkeletonLoader variant="text" style={{ width: '110px' }} />
+                </div>
+                <SkeletonLoader variant="text" style={{ width: '180px' }} />
+              </div>
+              <div className="settings-admin-list__skeleton-item">
+                <div className="settings-admin-list__skeleton-main">
+                  <SkeletonLoader variant="text" style={{ width: '200px' }} />
+                  <SkeletonLoader variant="text" style={{ width: '92px' }} />
+                </div>
+                <SkeletonLoader variant="text" style={{ width: '170px' }} />
+              </div>
+            </div>
           ) : adminUsers.length === 0 ? (
             <div className="settings-admin-list__empty">No admin users configured yet.</div>
           ) : (

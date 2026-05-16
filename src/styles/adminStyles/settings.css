@@ -11,6 +11,11 @@
   margin-bottom: 32px;
 }
 
+.hero_service {
+  width: 100%;
+  height: auto;
+  border-radius: 0 12px 12px 0;
+}
 .settings-page h2 {
   font-size: 18px;
   font-weight: 600;
@@ -25,6 +30,7 @@
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .settings-admin-form {
@@ -98,6 +104,7 @@
   padding: 12px 14px;
   background: #f8fafc;
   border: 1px solid rgba(17, 17, 17, 0.06);
+  flex-wrap: wrap;
 }
 
 .settings-admin-list__meta,
@@ -108,6 +115,26 @@
 
 .settings-admin-list__empty {
   padding: 8px 0;
+}
+
+.settings-admin-list__skeleton {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-admin-list__skeleton-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  align-items: center;
+}
+
+.settings-admin-list__skeleton-main {
+  display: grid;
+  gap: 6px;
 }
 
 .settings-section__header {
@@ -299,6 +326,10 @@
     padding: 16px;
   }
 
+  .settings-section {
+    padding: 16px;
+  }
+
   .settings-item {
     flex-direction: column;
     gap: 12px;
@@ -321,7 +352,47 @@
     align-items: flex-start;
   }
 
+  .settings-admin-list__skeleton-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .settings-info-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-input {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-admin-list__item {
+    padding: 10px 12px;
+  }
+
+  .settings-page h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .settings-section {
+    padding: 12px;
+  }
+
+  .settings-item,
+  .settings-admin-list__item,
+  .settings-admin-list__skeleton-item {
+    gap: 8px;
+  }
+
+  .settings-token {
+    gap: 6px;
+  }
+
+  .settings-button,
+  .settings-token__action,
+  .settings-token__input {
+    width: 100%;
   }
 }

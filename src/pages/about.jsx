@@ -1,9 +1,23 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import NotificationPopup from '../components/NotificationPopup'
+import { createContactSubmission } from '../lib/fileApi'
 import '../styles/about.css'
+import aboutHero from '../assets/econInshigt.webp'
+
+function getInitialContactForm() {
+  return {
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: '',
+  }
+}
 
 const About = () => {
   const location = useLocation()
+  const [formData, setFormData] = useState(getInitialContactForm)
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     if (location.hash === '#contact') {
@@ -15,8 +29,76 @@ const About = () => {
     }
   }, [location.hash])
 
+  useEffect(() => {
+    if (!notification) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => {
+      setNotification(null)
+    }, 4500)
+
+    return () => window.clearTimeout(timer)
+  }, [notification])
+
+  const updateField = (field, value) => {
+    setFormData((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
+    const firstName = formData.firstName.trim()
+    const lastName = formData.lastName.trim()
+    const email = formData.email.trim()
+    const message = formData.message.trim()
+
+    if (!firstName || !lastName || !email || !message) {
+      setNotification({
+        type: 'error',
+        title: 'Message not sent',
+        message: 'Please complete your name, email, and message before submitting.',
+      })
+      return
+    }
+
+    try {
+      await createContactSubmission({
+        firstName,
+        lastName,
+        email,
+        message,
+      })
+
+      setNotification({
+        type: 'success',
+        title: 'Message sent',
+        message: 'Thanks for reaching out. We will review your message and reply by email.',
+      })
+      setFormData(getInitialContactForm())
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        title: 'Message not sent',
+        message: error.message || 'Try again.',
+      })
+    }
+  }
+
   return (
     <div className="page page--about">
+      {notification ? (
+        <NotificationPopup
+          type={notification.type}
+          title={notification.title}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
+      ) : null}
+
       <section className="hero hero--about">
         <div className="hero__content">
           <p className="eyebrow">Who We Are</p>
@@ -50,7 +132,7 @@ const About = () => {
         </div>
 
         <div className="hero__visual hero__visual--portrait" aria-label="Team portrait placeholder">
-          <span>Image placeholder</span>
+          <img src={aboutHero} alt="Hero image" className='about-hero'/>
         </div>
       </section>
 
@@ -75,24 +157,7 @@ const About = () => {
         </div>
       </section>
 
-      <section className="about-section about-section--split">
-        <div className="section-media section-media--wide" aria-label="Research workspace placeholder">
-          <span>Image placeholder</span>
-        </div>
-        <div className="section-copy">
-          <p className="eyebrow">Our Approach</p>
-          <h2>We combine rigor with context</h2>
-          <p>
-            Every engagement starts with the problem, not the format. We build analysis that is grounded in data,
-            shaped by local realities, and delivered in a way that decision-makers can actually use.
-          </p>
-          <ul className="feature-list">
-            <li>Evidence-led analysis</li>
-            <li>Clear, decision-ready reporting</li>
-            <li>Flexible support for teams of different sizes</li>
-          </ul>
-        </div>
-      </section>
+
 
       <section className="about-section contact-section" id="contact">
         <div className="section-heading">
@@ -100,42 +165,59 @@ const About = () => {
           <h2>Start a conversation with EconInsight</h2>
         </div>
         <div className="contact-layout">
-          <form className="contact-form">
+          <form className="contact-form" onSubmit={handleSubmit}>
             <div className="form-row">
               <label>
                 First name
-                <input type="text" name="firstName" placeholder="Jane" />
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="Jane"
+                  value={formData.firstName}
+                  onChange={(event) => updateField('firstName', event.target.value)}
+                  required
+                />
               </label>
               <label>
                 Last name
-                <input type="text" name="lastName" placeholder="Smitherton" />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Smitherton"
+                  value={formData.lastName}
+                  onChange={(event) => updateField('lastName', event.target.value)}
+                  required
+                />
               </label>
             </div>
             <label>
               Email address
-              <input type="email" name="email" placeholder="email@econinsight.net" />
+              <input
+                type="email"
+                name="email"
+                placeholder="email@econinsight.net"
+                value={formData.email}
+                onChange={(event) => updateField('email', event.target.value)}
+                required
+              />
             </label>
             <label>
               Your message
-              <textarea name="message" rows="6" placeholder="Enter your question or message" />
+              <textarea
+                name="message"
+                rows="6"
+                placeholder="Enter your question or message"
+                value={formData.message}
+                onChange={(event) => updateField('message', event.target.value)}
+                required
+              />
             </label>
             <button type="submit" className="button button--primary button--full">
-              Submit
+              Send message
             </button>
           </form>
 
-          <aside className="contact-panel">
-            <div className="contact-panel__visual" aria-hidden="true">
-              Image placeholder
-            </div>
-            <div>
-              <h3>Tell us what you need</h3>
-              <p>
-                Whether you need a research brief, a market scan, or long-term advisory support, we can shape the
-                engagement around your goals.
-              </p>
-            </div>
-          </aside>
+          
         </div>
       </section>
     </div>

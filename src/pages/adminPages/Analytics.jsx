@@ -1,7 +1,69 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { fetchAdminPosts } from '../../lib/fileApi'
 import '../../styles/adminStyles/analytics.css'
 import LineChart from '../../components/admin/LineChart'
+import SkeletonLoader from '../../components/SkeletonLoader'
+
+const ANALYTICS_POSTS_CACHE_KEY = 'econinsight.analytics.posts.v1'
+
+let analyticsPostsMemoryCache = {
+  signature: '',
+  posts: null,
+}
+
+function buildPostsSignature(posts) {
+  const normalized = [...(Array.isArray(posts) ? posts : [])]
+    .map((post) => ({
+      id: post.id ?? null,
+      title: post.title ?? '',
+      status: String(post.status || 'published').toLowerCase(),
+      postType: post.post_type || post.postType || '',
+      viewCount: post.view_count || post.viewCount || 0,
+      createdAt: post.created_at || post.createdAt || '',
+      updatedAt: post.updated_at || post.updatedAt || '',
+    }))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+
+  return JSON.stringify(normalized)
+}
+
+function readPostsCache() {
+  if (analyticsPostsMemoryCache.posts) {
+    return analyticsPostsMemoryCache
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(ANALYTICS_POSTS_CACHE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed.posts) || typeof parsed.signature !== 'string') {
+      return null
+    }
+
+    analyticsPostsMemoryCache = {
+      signature: parsed.signature,
+      posts: parsed.posts,
+    }
+
+    return analyticsPostsMemoryCache
+  } catch {
+    return null
+  }
+}
+
+function writePostsCache(posts, signature) {
+  analyticsPostsMemoryCache = { signature, posts }
+
+  try {
+    window.sessionStorage.setItem(
+      ANALYTICS_POSTS_CACHE_KEY,
+      JSON.stringify({ posts, signature })
+    )
+  } catch {
+    // Ignore storage errors and continue with in-memory cache only.
+  }
+}
 
 function Analytics({ onPageChange = () => {} }) {
   const [posts, setPosts] = useState([])
@@ -9,13 +71,30 @@ function Analytics({ onPageChange = () => {} }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const cached = readPostsCache()
+    if (cached?.posts?.length) {
+      setPosts(cached.posts)
+      setLoading(false)
+    }
+
     const loadData = async () => {
       try {
         const data = await fetchAdminPosts()
-        setPosts(data.posts || [])
+        const fetchedPosts = data.posts || []
+        const nextSignature = buildPostsSignature(fetchedPosts)
+        const previousSignature = cached?.signature || analyticsPostsMemoryCache.signature
+
+        if (nextSignature !== previousSignature) {
+          setPosts(fetchedPosts)
+          writePostsCache(fetchedPosts, nextSignature)
+        }
+
+        setError('')
       } catch (err) {
         console.error('Failed to load analytics data:', err)
-        setError('Failed to load analytics data')
+        if (!cached?.posts?.length) {
+          setError('Failed to load analytics data')
+        }
       } finally {
         setLoading(false)
       }
@@ -24,29 +103,64 @@ function Analytics({ onPageChange = () => {} }) {
     loadData()
   }, [])
 
+  const {
+    publishedPosts,
+    draftPosts,
+    blogs,
+    articles,
+    totalViews,
+    avgViews,
+    topPosts,
+    blogViews,
+    articleViews,
+  } = useMemo(() => {
+    const published = posts.filter((post) => String(post.status || 'published').toLowerCase() === 'published')
+    const drafts = posts.filter((post) => String(post.status || 'published').toLowerCase() === 'draft')
+    const blogPosts = posts.filter((post) => (post.post_type || post.postType) === 'blog')
+    const articlePosts = posts.filter((post) => (post.post_type || post.postType) === 'article')
+
+    const total = posts.reduce((sum, post) => sum + (post.view_count || post.viewCount || 0), 0)
+    const average = posts.length > 0 ? Math.round(total / posts.length) : 0
+
+    const ranked = [...published]
+      .sort((a, b) => (b.view_count || b.viewCount || 0) - (a.view_count || a.viewCount || 0))
+      .slice(0, 10)
+
+    const blogTotal = blogPosts.reduce((sum, post) => sum + (post.view_count || post.viewCount || 0), 0)
+    const articleTotal = articlePosts.reduce((sum, post) => sum + (post.view_count || post.viewCount || 0), 0)
+
+    return {
+      publishedPosts: published,
+      draftPosts: drafts,
+      blogs: blogPosts,
+      articles: articlePosts,
+      totalViews: total,
+      avgViews: average,
+      topPosts: ranked,
+      blogViews: blogTotal,
+      articleViews: articleTotal,
+    }
+  }, [posts])
+
   if (loading) {
-    return <div className="analytics-page">Loading analytics...</div>
+    return (
+      <div className="analytics-page analytics-page--loading" aria-label="Loading analytics">
+        <SkeletonLoader variant="title" className="analytics-skeleton__title" />
+        <div className="analytics-skeleton__cards">
+          <SkeletonLoader variant="small-rect" />
+          <SkeletonLoader variant="small-rect" />
+          <SkeletonLoader variant="small-rect" />
+          <SkeletonLoader variant="small-rect" />
+        </div>
+        <SkeletonLoader variant="rect" className="analytics-skeleton__chart" />
+        <SkeletonLoader variant="rect" className="analytics-skeleton__table" />
+      </div>
+    )
   }
 
   if (error) {
     return <div className="analytics-page"><div className="analytics-error">{error}</div></div>
   }
-
-  // Calculate stats
-  const publishedPosts = posts.filter(p => (p.status || 'published').toLowerCase() === 'published')
-  const draftPosts = posts.filter(p => (p.status || 'published').toLowerCase() === 'draft')
-  const blogs = posts.filter(p => (p.post_type || p.postType) === 'blog')
-  const articles = posts.filter(p => (p.post_type || p.postType) === 'article')
-
-  const totalViews = posts.reduce((sum, p) => sum + (p.view_count || p.viewCount || 0), 0)
-  const avgViews = posts.length > 0 ? Math.round(totalViews / posts.length) : 0
-
-  // Top posts by views
-  const topPosts = [...publishedPosts].sort((a, b) => (b.view_count || b.viewCount || 0) - (a.view_count || a.viewCount || 0)).slice(0, 10)
-
-  // Blog vs Article breakdown
-  const blogViews = blogs.reduce((sum, p) => sum + (p.view_count || p.viewCount || 0), 0)
-  const articleViews = articles.reduce((sum, p) => sum + (p.view_count || p.viewCount || 0), 0)
 
   return (
     <div className="analytics-page">

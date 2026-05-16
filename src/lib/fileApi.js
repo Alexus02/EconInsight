@@ -20,6 +20,15 @@ function toClientFileUrl(rawUrl) {
     return rawUrl
   }
 
+  // Normalize storage keys that may be returned without a leading slash
+  // e.g. "research-files/host/12345.pdf" -> "/research-files/host/12345.pdf"
+  try {
+    const s = String(rawUrl)
+    if (s.startsWith('research-files/')) {
+      return `/${s}`
+    }
+  } catch {}
+
   try {
     const parsed = new URL(String(rawUrl))
     const pathWithQuery = `${parsed.pathname}${parsed.search || ''}`
@@ -32,6 +41,27 @@ function toClientFileUrl(rawUrl) {
   }
 
   return rawUrl
+}
+
+function toDevObjectProxyUrl(rawUrl) {
+  if (!rawUrl) {
+    return rawUrl
+  }
+
+  const normalizedUrl = toClientFileUrl(rawUrl)
+  if (!normalizedUrl) {
+    return normalizedUrl
+  }
+
+  if (String(normalizedUrl).startsWith('/api/files/object/')) {
+    return normalizedUrl
+  }
+
+  if (!String(normalizedUrl).includes('research-files')) {
+    return normalizedUrl
+  }
+
+  return `/api/files/object/${encodeURIComponent(String(normalizedUrl))}`
 }
 
 function mapFileRecord(file) {
@@ -52,9 +82,36 @@ function mapPostRecord(post) {
 
   return {
     ...post,
-    articleFileUrl: toClientFileUrl(post.articleFileUrl),
-    coverImageUrl: toClientFileUrl(post.coverImageUrl),
-    articleImageUrls: (post.articleImageUrls || []).map(toClientFileUrl),
+    // In dev, if the post points at our research-files R2 key but local R2
+    // doesn't have the object, route requests through the Worker proxy
+    // (`/api/files/object/:key`) so the Worker can fetch and return the
+    // sample PDF with proper CORS headers instead of redirecting the
+    // browser to an external origin (which triggers CSP/frame-ancestors).
+    articleFileUrl: import.meta.env.DEV ? toDevObjectProxyUrl(post.articleFileUrl) : toClientFileUrl(post.articleFileUrl),
+    coverImageUrl: import.meta.env.DEV ? toDevObjectProxyUrl(post.coverImageUrl) : toClientFileUrl(post.coverImageUrl),
+    articleImageUrls: (post.articleImageUrls || []).map((u) => (
+      import.meta.env.DEV ? toDevObjectProxyUrl(u) : toClientFileUrl(u)
+    )),
+  }
+}
+
+function mapBookingRecord(booking) {
+  if (!booking) {
+    return booking
+  }
+
+  return {
+    ...booking,
+  }
+}
+
+function mapAdminMessageRecord(message) {
+  if (!message) {
+    return message
+  }
+
+  return {
+    ...message,
   }
 }
 
@@ -342,6 +399,115 @@ export async function deletePost(postId) {
   return data
 }
 
+export async function createBooking(payload) {
+  const response = await fetch(withBase('/api/bookings'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to create booking.'))
+  }
+
+  const data = await response.json()
+  if (!data?.booking) {
+    return data
+  }
+
+  return {
+    ...data,
+    booking: mapBookingRecord(data.booking),
+  }
+}
+
+export async function createContactSubmission(payload) {
+  const response = await fetch(withBase('/api/contact-submissions'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to send your message.'))
+  }
+
+  const data = await response.json()
+  if (!data?.message) {
+    return data
+  }
+
+  return {
+    ...data,
+    message: mapAdminMessageRecord(data.message),
+  }
+}
+
+export async function fetchAdminBookings() {
+  const response = await fetch(withBase('/api/admin/bookings'), {
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to load bookings.'))
+  }
+
+  const data = await response.json()
+  return {
+    ...data,
+    bookings: (data.bookings || []).map(mapBookingRecord),
+  }
+}
+
+export async function fetchAdminMessages() {
+  const response = await fetch(withBase('/api/admin/messages'), {
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to load messages.'))
+  }
+
+  const data = await response.json()
+  return {
+    ...data,
+    messages: (data.messages || []).map(mapAdminMessageRecord),
+  }
+}
+
+export async function respondToBooking(bookingId, payload) {
+  const response = await fetch(withBase(`/api/admin/bookings/${encodeURIComponent(bookingId)}/respond`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getHostHeaders(),
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to send booking response.'))
+  }
+
+  const data = await response.json()
+  if (!data?.booking) {
+    return data
+  }
+
+  return {
+    ...data,
+    booking: mapBookingRecord(data.booking),
+  }
+}
+
 export async function loginAdmin(email, secretKey) {
   const response = await fetch(withBase('/api/admin/auth/login'), {
     method: 'POST',
@@ -430,4 +596,36 @@ export async function upsertAdminUser(email, secretKey) {
   }
 
   return response.json()
+}
+
+export async function deleteBooking(bookingId) {
+  const response = await fetch(withBase(`/api/admin/bookings/${encodeURIComponent(bookingId)}`), {
+    method: 'DELETE',
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to delete booking.'))
+  }
+
+  const data = await response.json()
+  return data
+}
+
+export async function deleteAdminMessage(messageId) {
+  const response = await fetch(withBase(`/api/admin/messages/${encodeURIComponent(messageId)}`), {
+    method: 'DELETE',
+    headers: {
+      ...getHostHeaders(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Unable to delete message.'))
+  }
+
+  const data = await response.json()
+  return data
 }

@@ -16,7 +16,8 @@ const CORS_HEADERS = {
 }
 
 const ADMIN_SESSION_DAYS = 30
-const DEFAULT_ADMIN_EMAIL = 'admin@gmail.com'
+const LEGACY_DEFAULT_ADMIN_EMAIL = 'admin@gmail.com'
+const DEFAULT_ADMIN_EMAIL = 'hello@econinsight.com'
 const DEFAULT_ADMIN_SECRET = 'alex@1234'
 let adminAuthBootstrapPromise = null
 
@@ -236,7 +237,17 @@ async function ensureAdminAuthSchema(env) {
       `).run()
 
       const defaultAdmin = await env.DB.prepare(`SELECT id FROM admin_users WHERE email = ?`).bind(DEFAULT_ADMIN_EMAIL).first()
-      if (!defaultAdmin) {
+      const legacyAdmin = await env.DB.prepare(`SELECT id FROM admin_users WHERE email = ?`).bind(LEGACY_DEFAULT_ADMIN_EMAIL).first()
+
+      if (!defaultAdmin && legacyAdmin) {
+        await env.DB.prepare(
+          `UPDATE admin_users
+           SET email = ?, updated_at = ?
+           WHERE id = ?`
+        )
+          .bind(DEFAULT_ADMIN_EMAIL, new Date().toISOString(), legacyAdmin.id)
+          .run()
+      } else if (!defaultAdmin) {
         const salt = randomHex(16)
         const hash = await hashAdminSecret(DEFAULT_ADMIN_SECRET, salt)
         const now = new Date().toISOString()
@@ -254,6 +265,68 @@ async function ensureAdminAuthSchema(env) {
   }
 
   return adminAuthBootstrapPromise
+}
+
+async function ensureAdminMessagesSchema(env) {
+  await ensureAdminAuthSchema(env)
+
+  await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS admin_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      message_type TEXT NOT NULL CHECK (message_type IN ('contact', 'booking')),
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      company TEXT,
+      subject TEXT,
+      requested_at TEXT,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'read', 'archived')),
+      email_delivery_status TEXT,
+      email_delivery_error TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run()
+
+  await env.DB.prepare(`
+    CREATE INDEX IF NOT EXISTS idx_admin_messages_type_created ON admin_messages(message_type, created_at DESC)
+  `).run()
+
+  await env.DB.prepare(`
+    CREATE INDEX IF NOT EXISTS idx_admin_messages_status_created ON admin_messages(status, created_at DESC)
+  `).run()
+}
+
+async function ensureBookingSchema(env) {
+  await ensureAdminMessagesSchema(env)
+
+  await env.DB.prepare(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      company TEXT,
+      requested_at TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'responded', 'declined')),
+      admin_response_subject TEXT,
+      admin_response_message TEXT,
+      responded_by_admin_email TEXT,
+      responded_at TEXT,
+      email_delivery_status TEXT,
+      email_delivery_error TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run()
+
+  await env.DB.prepare(`
+    CREATE INDEX IF NOT EXISTS idx_bookings_status_created ON bookings(status, created_at DESC)
+  `).run()
+
+  await env.DB.prepare(`
+    CREATE INDEX IF NOT EXISTS idx_bookings_requested_at ON bookings(requested_at DESC)
+  `).run()
 }
 
 async function getAdminUserBySessionToken(env, sessionToken) {
@@ -384,6 +457,40 @@ function toPublicFileUrl(requestUrl, env, key) {
   return `${requestUrl.origin}/api/files/object/${encodeURIComponent(key)}`
 }
 
+function isImageObjectKey(key) {
+  return /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(String(key || ''))
+}
+
+function createMissingImageResponse(key, requestMethod) {
+  const label = escapeHtml(String(key || 'Image unavailable'))
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1280" viewBox="0 0 960 1280" role="img" aria-label="Image unavailable">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5f1ea" />
+      <stop offset="100%" stop-color="#e7ded2" />
+    </linearGradient>
+  </defs>
+  <rect width="960" height="1280" rx="36" fill="url(#bg)" />
+  <rect x="80" y="110" width="800" height="960" rx="28" fill="#ffffff" opacity="0.8" />
+  <rect x="150" y="190" width="660" height="520" rx="22" fill="#d7d0c7" />
+  <path d="M270 620 L410 480 L520 580 L640 430 L790 620 Z" fill="#b8b0a6" />
+  <circle cx="365" cy="360" r="58" fill="#ffffff" opacity="0.72" />
+  <text x="480" y="1110" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#6a6258">Image unavailable</text>
+  <text x="480" y="1168" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#8a8073">${label}</text>
+</svg>`
+
+  const headers = {
+    'Content-Type': 'image/svg+xml; charset=utf-8',
+    'Cache-Control': 'no-store',
+    ...CORS_HEADERS,
+  }
+
+  return requestMethod === 'HEAD'
+    ? new Response(null, { status: 200, headers })
+    : new Response(svg, { status: 200, headers })
+}
+
 function normalizePostType(postType) {
   return postType === 'article' || postType === 'blog' ? postType : null
 }
@@ -427,6 +534,221 @@ function mapPostRow(row) {
   return {
     ...row,
     articleImageUrls: parseJsonArray(row.articleImageUrls),
+  }
+}
+
+function normalizeBookingStatus(status) {
+  const normalized = String(status || '').trim().toLowerCase()
+  return ['pending', 'accepted', 'responded', 'declined'].includes(normalized) ? normalized : 'pending'
+}
+
+function mapBookingRow(row) {
+  if (!row) {
+    return row
+  }
+
+  return {
+    ...row,
+    company: row.company || '',
+    adminResponseSubject: row.adminResponseSubject || '',
+    adminResponseMessage: row.adminResponseMessage || '',
+    respondedByAdminEmail: row.respondedByAdminEmail || '',
+    emailDeliveryStatus: row.emailDeliveryStatus || '',
+    emailDeliveryError: row.emailDeliveryError || '',
+  }
+}
+
+function mapAdminMessageRow(row) {
+  if (!row) {
+    return row
+  }
+
+  return {
+    ...row,
+    company: row.company || '',
+    subject: row.subject || '',
+    requestedAt: row.requestedAt || '',
+    status: row.status || 'new',
+    emailDeliveryStatus: row.emailDeliveryStatus || '',
+    emailDeliveryError: row.emailDeliveryError || '',
+  }
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+async function sendBookingResponseEmail(env, booking, adminUser, subject, message) {
+  const apiKey = String(env.RESEND_API_KEY || '').trim()
+  if (!apiKey) {
+    return {
+      sent: false,
+      status: 'not_configured',
+      error: '',
+    }
+  }
+
+  const fromAddress = String(env.BOOKING_FROM_EMAIL || 'EconInsight <no-reply@econinsight.com>').trim()
+  const replyTo = adminUser?.email || fromAddress
+  const emailSubject = subject || 'Your EconInsight consultation booking'
+  const adminSignature = adminUser?.email ? `\n\nReply-to: ${adminUser.email}` : ''
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: fromAddress,
+      to: [booking.email],
+      reply_to: replyTo,
+      subject: emailSubject,
+      text: `Hello ${booking.fullName || 'there'},\n\n${message}${adminSignature}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+          <h2 style="margin: 0 0 16px;">${escapeHtml(emailSubject)}</h2>
+          <p>Hello ${escapeHtml(booking.fullName || 'there')},</p>
+          <p>${escapeHtml(message).replace(/\n/g, '<br />')}</p>
+          <p style="margin-top: 24px; color: #555;">Reply to this email if you need anything else.</p>
+          ${adminUser?.email ? `<p style="margin-top: 12px; color: #555; font-size: 14px;">Responded by ${escapeHtml(adminUser.email)}</p>` : ''}
+        </div>
+      `,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    return {
+      sent: false,
+      status: 'failed',
+      error: errorText || `Failed to send booking response email (${response.status})`,
+    }
+  }
+
+  return {
+    sent: true,
+    status: 'sent',
+    error: '',
+  }
+}
+
+async function getActiveAdminEmails(env) {
+  await ensureAdminAuthSchema(env)
+
+  const rows = await env.DB.prepare(
+    `SELECT email
+     FROM admin_users
+     WHERE is_active = 1
+     ORDER BY created_at ASC`
+  ).all()
+
+  const emails = (rows.results || [])
+    .map((row) => String(row.email || '').trim())
+    .filter(Boolean)
+
+  return emails.length > 0 ? emails : [DEFAULT_ADMIN_EMAIL]
+}
+
+async function sendAdminNotificationEmail(env, recipients, subject, payload) {
+  const apiKey = String(env.RESEND_API_KEY || '').trim()
+  if (!apiKey) {
+    return {
+      sent: false,
+      status: 'not_configured',
+      error: '',
+    }
+  }
+
+  const recipientList = (Array.isArray(recipients) ? recipients : [recipients])
+    .map((email) => String(email || '').trim())
+    .filter(Boolean)
+
+  if (recipientList.length === 0) {
+    return {
+      sent: false,
+      status: 'no_recipients',
+      error: '',
+    }
+  }
+
+  const fromAddress = String(env.NOTIFICATION_FROM_EMAIL || env.BOOKING_FROM_EMAIL || 'EconInsight <no-reply@econinsight.com>').trim()
+  const senderEmail = String(payload?.senderEmail || '').trim()
+  const senderName = String(payload?.senderName || '').trim() || 'Unknown sender'
+  const emailBody = String(payload?.message || '').trim()
+  const metaLines = []
+
+  if (payload?.messageType) {
+    metaLines.push(`Type: ${payload.messageType}`)
+  }
+
+  if (senderEmail) {
+    metaLines.push(`Sender: ${senderName} <${senderEmail}>`)
+  } else {
+    metaLines.push(`Sender: ${senderName}`)
+  }
+
+  if (payload?.company) {
+    metaLines.push(`Company: ${payload.company}`)
+  }
+
+  if (payload?.requestedAt) {
+    metaLines.push(`Requested time: ${payload.requestedAt}`)
+  }
+
+  if (payload?.details) {
+    metaLines.push(...payload.details.map((item) => String(item)))
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: fromAddress,
+      to: recipientList,
+      reply_to: senderEmail || fromAddress,
+      subject,
+      text: [
+        subject,
+        '',
+        ...metaLines,
+        '',
+        emailBody,
+      ].join('\n'),
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+          <h2 style="margin: 0 0 16px;">${escapeHtml(subject)}</h2>
+          <p style="margin: 0 0 8px;"><strong>${escapeHtml(senderName)}</strong>${senderEmail ? ` &lt;${escapeHtml(senderEmail)}&gt;` : ''}</p>
+          ${payload?.messageType ? `<p style="margin: 0 0 8px; color: #555;">Type: ${escapeHtml(payload.messageType)}</p>` : ''}
+          ${payload?.company ? `<p style="margin: 0 0 8px; color: #555;">Company: ${escapeHtml(payload.company)}</p>` : ''}
+          ${payload?.requestedAt ? `<p style="margin: 0 0 8px; color: #555;">Requested time: ${escapeHtml(payload.requestedAt)}</p>` : ''}
+          <div style="margin: 20px 0 0; padding: 16px; background: #f8f8f8; border-radius: 10px; white-space: pre-line;">${escapeHtml(emailBody)}</div>
+        </div>
+      `,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    return {
+      sent: false,
+      status: 'failed',
+      error: errorText || `Failed to send admin notification email (${response.status})`,
+    }
+  }
+
+  return {
+    sent: true,
+    status: 'sent',
+    error: '',
   }
 }
 
@@ -697,7 +1019,7 @@ export default {
       return jsonResponse({ file: result }, 201)
     }
 
-    if (request.method === 'GET' && url.pathname.startsWith('/api/files/object/')) {
+    if ((request.method === 'GET' || request.method === 'HEAD') && url.pathname.startsWith('/api/files/object/')) {
       const key = decodeURIComponent(url.pathname.replace('/api/files/object/', ''))
       if (!key) {
         return jsonResponse({ message: 'Missing object key.' }, 400)
@@ -716,6 +1038,41 @@ export default {
 
       const object = await env.RESEARCH_BUCKET.get(key)
       if (!object) {
+        // Developer convenience: if a specific test key is requested but not
+        // present in local R2, redirect to a public sample PDF so the frontend
+        // can render something during local development.
+        if (String(key).includes('econsinsite_test_02') || String(key).endsWith('econsinsite_test_02.pdf')) {
+          // Proxy a public sample PDF through the Worker so we can set CORS
+          // headers. This avoids the browser blocking the resource when
+          // redirected to an external origin without CORS.
+          try {
+            const publicUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+            const upstream = await fetch(publicUrl)
+            if (!upstream.ok) {
+              return jsonResponse({ message: 'Sample PDF unavailable.' }, 502)
+            }
+
+            const proxiedHeaders = new Headers(upstream.headers)
+            // Ensure CORS headers are present for the browser
+            proxiedHeaders.set('Access-Control-Allow-Origin', CORS_HEADERS['Access-Control-Allow-Origin'])
+            proxiedHeaders.set('Access-Control-Allow-Methods', CORS_HEADERS['Access-Control-Allow-Methods'])
+            proxiedHeaders.set('Access-Control-Allow-Headers', CORS_HEADERS['Access-Control-Allow-Headers'])
+            proxiedHeaders.set('Access-Control-Max-Age', CORS_HEADERS['Access-Control-Max-Age'])
+            proxiedHeaders.set('cache-control', 'public, max-age=300')
+
+            return new Response(upstream.body, {
+              status: upstream.status,
+              headers: proxiedHeaders,
+            })
+          } catch (err) {
+            return jsonResponse({ message: 'Proxy error fetching sample PDF.' }, 502)
+          }
+        }
+
+        if (isImageObjectKey(key)) {
+          return createMissingImageResponse(key, request.method)
+        }
+
         return jsonResponse({ message: 'File not found.' }, 404)
       }
 
@@ -757,6 +1114,190 @@ export default {
       return jsonResponse({ message: 'View recorded.' })
     }
 
+    if (request.method === 'POST' && url.pathname === '/api/contact-submissions') {
+      let payload
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      await ensureAdminMessagesSchema(env)
+
+      const firstName = String(payload?.firstName || '').trim()
+      const lastName = String(payload?.lastName || '').trim()
+      const fullName = `${firstName} ${lastName}`.trim()
+      const email = String(payload?.email || '').trim().toLowerCase()
+      const message = String(payload?.message || '').trim()
+
+      if (!firstName || !lastName || !email || !message) {
+        return jsonResponse({ message: 'firstName, lastName, email, and message are required.' }, 400)
+      }
+
+      const now = new Date().toISOString()
+      const insertResult = await env.DB.prepare(
+        `INSERT INTO admin_messages (
+            message_type,
+            full_name,
+            email,
+            subject,
+            message,
+            status,
+            created_at,
+            updated_at
+         )
+         VALUES ('contact', ?, ?, ?, ?, 'new', ?, ?)
+         RETURNING
+            id,
+            message_type AS messageType,
+            full_name AS fullName,
+            email,
+            company,
+            subject,
+            requested_at AS requestedAt,
+            message,
+            status,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt`
+      )
+        .bind(fullName, email, `New contact message from ${fullName}`, message, now, now)
+        .first()
+
+      const adminEmails = await getActiveAdminEmails(env)
+      const emailResult = await sendAdminNotificationEmail(env, adminEmails, `New contact message from ${fullName}`, {
+        messageType: 'contact',
+        senderName: fullName,
+        senderEmail: email,
+        message,
+      })
+
+      await env.DB.prepare(
+        `UPDATE admin_messages
+         SET email_delivery_status = ?,
+             email_delivery_error = ?,
+             updated_at = ?
+         WHERE id = ?`
+      )
+        .bind(emailResult.status, emailResult.error || null, new Date().toISOString(), insertResult.id)
+        .run()
+
+      return jsonResponse({ message: mapAdminMessageRow(insertResult), emailDelivery: emailResult }, 201)
+    }
+
+    if (request.method === 'POST' && url.pathname === '/api/bookings') {
+      let payload
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      await ensureBookingSchema(env)
+
+      const fullName = String(payload?.fullName || '').trim()
+      const email = String(payload?.email || '').trim().toLowerCase()
+      const company = String(payload?.company || '').trim()
+      const requestedAt = String(payload?.requestedAt || '').trim()
+      const message = String(payload?.message || '').trim()
+
+      if (!fullName || !email || !requestedAt || !message) {
+        return jsonResponse({ message: 'fullName, email, requestedAt, and message are required.' }, 400)
+      }
+
+      const requestedDate = new Date(requestedAt)
+      if (Number.isNaN(requestedDate.getTime())) {
+        return jsonResponse({ message: 'requestedAt must be a valid date and time.' }, 400)
+      }
+
+      const now = new Date().toISOString()
+      const booking = await env.DB.prepare(
+        `INSERT INTO bookings (
+            full_name,
+            email,
+            company,
+            requested_at,
+            message,
+            status,
+            created_at,
+            updated_at
+         )
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)
+         RETURNING
+            id,
+            full_name AS fullName,
+            email,
+            company,
+            requested_at AS requestedAt,
+            message,
+            status,
+            admin_response_subject AS adminResponseSubject,
+            admin_response_message AS adminResponseMessage,
+            responded_by_admin_email AS respondedByAdminEmail,
+            responded_at AS respondedAt,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt`
+      )
+        .bind(fullName, email, company || null, requestedAt, message, now, now)
+        .first()
+
+      const bookingMessage = await env.DB.prepare(
+        `INSERT INTO admin_messages (
+            message_type,
+            full_name,
+            email,
+            company,
+            subject,
+            requested_at,
+            message,
+            status,
+            created_at,
+            updated_at
+         )
+         VALUES ('booking', ?, ?, ?, ?, ?, ?, 'new', ?, ?)
+         RETURNING id`
+      )
+        .bind(
+          fullName,
+          email,
+          company || null,
+          `New booking request from ${fullName}`,
+          requestedAt,
+          message,
+          now,
+          now
+        )
+        .first()
+
+      if (!booking || !bookingMessage) {
+        return jsonResponse({ message: 'Unable to create booking.' }, 500)
+      }
+      const adminEmails = await getActiveAdminEmails(env)
+      const emailResult = await sendAdminNotificationEmail(env, adminEmails, `New booking request from ${fullName}`, {
+        messageType: 'booking',
+        senderName: fullName,
+        senderEmail: email,
+        company: company || '',
+        requestedAt,
+        message,
+      })
+
+      await env.DB.prepare(
+        `UPDATE admin_messages
+         SET email_delivery_status = ?,
+             email_delivery_error = ?,
+             updated_at = ?
+         WHERE id = ?`
+      )
+        .bind(emailResult.status, emailResult.error || null, new Date().toISOString(), bookingMessage.id)
+        .run()
+
+      return jsonResponse({ booking, emailDelivery: emailResult }, 201)
+    }
+
     if (request.method === 'GET' && url.pathname === '/api/files') {
       const rows = await env.DB.prepare(
         `SELECT
@@ -775,6 +1316,172 @@ export default {
       ).all()
 
       return jsonResponse({ files: rows.results || [] })
+    }
+
+    if (request.method === 'GET' && url.pathname === '/api/admin/bookings') {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      await ensureBookingSchema(env)
+      const bookingRows = await env.DB.prepare(
+        `SELECT
+            id,
+            full_name AS fullName,
+            email,
+            company,
+            requested_at AS requestedAt,
+            message,
+            status,
+            admin_response_subject AS adminResponseSubject,
+            admin_response_message AS adminResponseMessage,
+            responded_by_admin_email AS respondedByAdminEmail,
+            responded_at AS respondedAt,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+         FROM bookings
+         ORDER BY created_at DESC
+         LIMIT 200`
+      ).all()
+
+      return jsonResponse({ bookings: (bookingRows.results || []).map(mapBookingRow) })
+    }
+
+    if (request.method === 'GET' && url.pathname === '/api/admin/messages') {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      await ensureAdminMessagesSchema(env)
+      const messageRows = await env.DB.prepare(
+        `SELECT
+            id,
+            message_type AS messageType,
+            full_name AS fullName,
+            email,
+            company,
+            subject,
+            requested_at AS requestedAt,
+            message,
+            status,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+         FROM admin_messages
+         ORDER BY created_at DESC
+         LIMIT 300`
+      ).all()
+
+      return jsonResponse({ messages: (messageRows.results || []).map(mapAdminMessageRow) })
+    }
+
+    if (request.method === 'POST' && url.pathname.startsWith('/api/admin/bookings/') && url.pathname.endsWith('/respond')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const sessionToken = request.headers.get('x-admin-session-token')
+      const adminUser = await getAdminUserBySessionToken(env, sessionToken)
+      if (!adminUser) {
+        return jsonResponse({ message: 'Admin session required.' }, 401)
+      }
+
+      const bookingIdStr = url.pathname.replace('/api/admin/bookings/', '').replace('/respond', '')
+      const bookingId = Number(bookingIdStr)
+      if (!Number.isFinite(bookingId) || bookingId <= 0) {
+        return jsonResponse({ message: 'Invalid booking id.' }, 400)
+      }
+
+      let payload
+      try {
+        payload = await request.json()
+      } catch {
+        return jsonResponse({ message: 'Invalid JSON body.' }, 400)
+      }
+
+      await ensureBookingSchema(env)
+
+      const subject = String(payload?.subject || '').trim()
+      const message = String(payload?.message || '').trim()
+      const nextStatus = normalizeBookingStatus(payload?.status || 'accepted')
+
+      if (!subject || !message) {
+        return jsonResponse({ message: 'subject and message are required.' }, 400)
+      }
+
+      const booking = await env.DB.prepare(
+        `SELECT
+            id,
+            full_name AS fullName,
+            email,
+            company,
+            requested_at AS requestedAt,
+            message,
+            status,
+            admin_response_subject AS adminResponseSubject,
+            admin_response_message AS adminResponseMessage,
+            responded_by_admin_email AS respondedByAdminEmail,
+            responded_at AS respondedAt,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+         FROM bookings
+         WHERE id = ?`
+      ).bind(bookingId).first()
+
+      if (!booking) {
+        return jsonResponse({ message: 'Booking not found.' }, 404)
+      }
+
+      const emailResult = await sendBookingResponseEmail(env, booking, adminUser, subject, message)
+      const now = new Date().toISOString()
+
+      const updated = await env.DB.prepare(
+        `UPDATE bookings
+         SET status = ?,
+             admin_response_subject = ?,
+             admin_response_message = ?,
+             responded_by_admin_email = ?,
+             responded_at = ?,
+             email_delivery_status = ?,
+             email_delivery_error = ?,
+             updated_at = ?
+         WHERE id = ?
+         RETURNING
+            id,
+            full_name AS fullName,
+            email,
+            company,
+            requested_at AS requestedAt,
+            message,
+            status,
+            admin_response_subject AS adminResponseSubject,
+            admin_response_message AS adminResponseMessage,
+            responded_by_admin_email AS respondedByAdminEmail,
+            responded_at AS respondedAt,
+            email_delivery_status AS emailDeliveryStatus,
+            email_delivery_error AS emailDeliveryError,
+            created_at AS createdAt,
+            updated_at AS updatedAt`
+      )
+        .bind(
+          nextStatus,
+          subject,
+          message,
+          adminUser.email,
+          now,
+          emailResult.status,
+          emailResult.error || null,
+          now,
+          bookingId
+        )
+        .first()
+
+      return jsonResponse({ booking: mapBookingRow(updated), emailDelivery: emailResult })
     }
 
     if (request.method === 'GET' && url.pathname === '/api/admin/posts') {
@@ -995,6 +1702,34 @@ export default {
       if (!id) return jsonResponse({ message: 'Invalid post id' }, 400)
 
       await env.DB.prepare(`DELETE FROM posts WHERE id = ?`).bind(id).run()
+      return jsonResponse({ message: 'Deleted' })
+    }
+
+    // Delete booking
+    if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/bookings/')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const id = Number(url.pathname.replace('/api/admin/bookings/', ''))
+      if (!id) return jsonResponse({ message: 'Invalid booking id' }, 400)
+
+      await ensureBookingSchema(env)
+      await env.DB.prepare(`DELETE FROM bookings WHERE id = ?`).bind(id).run()
+      return jsonResponse({ message: 'Deleted' })
+    }
+
+    // Delete admin message
+    if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/messages/')) {
+      if (!(await isHostRequest(request, env))) {
+        return jsonResponse({ message: 'Forbidden' }, 403)
+      }
+
+      const id = Number(url.pathname.replace('/api/admin/messages/', ''))
+      if (!id) return jsonResponse({ message: 'Invalid message id' }, 400)
+
+      await ensureAdminMessagesSchema(env)
+      await env.DB.prepare(`DELETE FROM admin_messages WHERE id = ?`).bind(id).run()
       return jsonResponse({ message: 'Deleted' })
     }
 

@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import '../styles/services.css'
+import serviceImg1 from '../assets/economic-research.jpg'
+import serviceImg2 from '../assets/market-research.jpg'
+import serviceImg3 from '../assets/consultation.jpg'
+import serviceImg4 from '../assets/policy-analysis.jpg'
+import serviceImg5 from '../assets/hero-money.jpg'
+import serviceImg6 from '../assets/econInsight.jpg'
+import service_hero from '../assets/services_hero.jpg'
 
 
 const Services = () => {
@@ -9,8 +16,8 @@ const Services = () => {
   const services = [
     {
       id: 1,
-      icon: '📊',
       title: 'Economic Research',
+      image: serviceImg1,
       description: 'Comprehensive economic analysis and research on market trends, policies, and business opportunities',
       details: [
         'Market sizing and opportunity analysis',
@@ -22,8 +29,8 @@ const Services = () => {
     },
     {
       id: 2,
-      icon: '📈',
       title: 'Market Intelligence',
+      image: serviceImg2,
       description: 'Data-driven market insights to support strategic business decisions',
       details: [
         'Consumer and market research',
@@ -35,8 +42,8 @@ const Services = () => {
     },
     {
       id: 3,
-      icon: '🎯',
       title: 'Strategic Consulting',
+      image: serviceImg3,
       description: 'Expert guidance on business strategy informed by economic expertise',
       details: [
         'Business strategy development',
@@ -48,8 +55,8 @@ const Services = () => {
     },
     {
       id: 4,
-      icon: '🔍',
       title: 'Policy Analysis',
+      image: serviceImg4,
       description: 'Government policy evaluation and economic impact assessment',
       details: [
         'Policy impact modeling',
@@ -61,8 +68,8 @@ const Services = () => {
     },
     {
       id: 5,
-      icon: '💼',
       title: 'Investment Analysis',
+      image: serviceImg5,
       description: 'Economic due diligence and investment opportunity assessment',
       details: [
         'Investment opportunity evaluation',
@@ -74,8 +81,8 @@ const Services = () => {
     },
     {
       id: 6,
-      icon: '🌍',
       title: 'Regional Development',
+      image: serviceImg6,
       description: 'Economic development strategies for regions and communities',
       details: [
         'Regional economic development planning',
@@ -93,16 +100,12 @@ const Services = () => {
         <div className="services-hero__content">
           <h1>Our Services</h1>
           <p>Comprehensive economic research and consulting solutions tailored to your needs</p>
+          <div className="services-hero__cta">
+            <Link to="/booking" className="button button--primary services-hero__button">Book a consultation</Link>
+          </div>
         </div>
         <div className="services-hero__media">
-          <div className="placeholder-image placeholder-large">
-            <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-              <rect width="400" height="300" fill="#e5e5e5" />
-              <text x="200" y="150" textAnchor="middle" fontSize="16" fill="#999">
-                Services Hero Image
-              </text>
-            </svg>
-          </div>
+      <img src={service_hero} alt="Services Hero" className='services-hero__image' />
         </div>
       </section>
 
@@ -111,15 +114,19 @@ const Services = () => {
           {services.map(service => (
             <div
               key={service.id}
-              className={`service-card ${selectedService?.id === service.id ? 'active' : ''}`}
+              className={`services-service-card ${selectedService?.id === service.id ? 'services-service-card--active' : ''}`}
               onClick={() => setSelectedService(selectedService?.id === service.id ? null : service)}
             >
-              <div className="service-icon">{service.icon}</div>
+              <div className="services-service-card__icon">
+                <img src={service.image} alt={service.title} className="services-service-card__image" />
+              </div>
               <h3>{service.title}</h3>
-              <p className="service-description">{service.description}</p>
+              <div className="services-service-card__description">
+                <p>{service.description}</p>
+              </div>
 
               {selectedService?.id === service.id && (
-                <div className="service-details">
+                <div className="services-service-card__details">
                   <ul>
                     {service.details.map((detail, idx) => (
                       <li key={idx}>
@@ -143,57 +150,21 @@ const Services = () => {
 
         <div className="process-steps">
           <div className="process-step">
-            <div className="step-number">1</div>
-            <div className="step-image placeholder-small">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="200" fill="#e5e5e5" />
-                <text x="100" y="100" textAnchor="middle" fontSize="12" fill="#999">
-                  Discovery
-                </text>
-              </svg>
-            </div>
             <h4>Discovery & Scoping</h4>
             <p>We understand your business challenges and define the research scope</p>
           </div>
 
           <div className="process-step">
-            <div className="step-number">2</div>
-            <div className="step-image placeholder-small">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="200" fill="#e5e5e5" />
-                <text x="100" y="100" textAnchor="middle" fontSize="12" fill="#999">
-                  Analysis
-                </text>
-              </svg>
-            </div>
             <h4>Research & Analysis</h4>
             <p>Our team conducts rigorous economic analysis using latest data and methodologies</p>
           </div>
 
           <div className="process-step">
-            <div className="step-number">3</div>
-            <div className="step-image placeholder-small">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="200" fill="#e5e5e5" />
-                <text x="100" y="100" textAnchor="middle" fontSize="12" fill="#999">
-                  Insights
-                </text>
-              </svg>
-            </div>
             <h4>Insights & Recommendations</h4>
             <p>We deliver actionable insights and strategic recommendations based on findings</p>
           </div>
 
           <div className="process-step">
-            <div className="step-number">4</div>
-            <div className="step-image placeholder-small">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <rect width="200" height="200" fill="#e5e5e5" />
-                <text x="100" y="100" textAnchor="middle" fontSize="12" fill="#999">
-                  Implementation
-                </text>
-              </svg>
-            </div>
             <h4>Implementation Support</h4>
             <p>We support you in implementing recommendations and tracking outcomes</p>
           </div>

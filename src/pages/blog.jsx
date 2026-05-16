@@ -54,7 +54,12 @@ const Blog = () => {
                   <Link to={`/posts/${post.id}`} className="thread-post__link">
                     {post.coverImageUrl && (
                       <div className="thread-post__image">
-                        <img src={post.coverImageUrl} alt={post.title} />
+                        <img
+                          src={post.coverImageUrl}
+                          alt={post.title}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </div>
                     )}
                     <div className="thread-post__header">

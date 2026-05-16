@@ -2,18 +2,26 @@ import React, { useEffect, useState } from 'react'
 import {
   fetchUploadedFiles,
   fetchAdminPosts,
+  fetchAdminBookings,
+  fetchAdminMessages,
   createPost,
   fetchCurrentAdmin,
   loginAdmin,
   clearStoredAdminSessionToken,
   deletePost as deleteAdminPost,
   updatePost as updateAdminPost,
+  respondToBooking,
+  deleteBooking,
+  deleteAdminMessage,
 } from '../lib/fileApi'
 import AdminSidebar from '../components/admin/AdminSidebar'
 import AdminPreview from '../components/admin/AdminPreview'
 import AdminLogin from '../components/admin/AdminLogin'
+import SkeletonLoader from '../components/SkeletonLoader'
 import Dashboard from './adminPages/Dashboard'
 import Posts from './adminPages/Posts'
+import Bookings from './adminPages/Bookings'
+import Messages from './adminPages/Messages'
 import Analytics from './adminPages/Analytics'
 import AllPosts from './adminPages/AllPosts'
 import Settings from './adminPages/Settings'
@@ -22,7 +30,7 @@ import '../styles/adminStyles/admin.css'
 function Admin() {
   const [authLoading, setAuthLoading] = useState(true)
   const [currentAdmin, setCurrentAdmin] = useState(null)
-  const [loginEmail, setLoginEmail] = useState('admin@gmail.com')
+  const [loginEmail, setLoginEmail] = useState('hello@econinsight.com')
   const [loginSecretKey, setLoginSecretKey] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loginSubmitting, setLoginSubmitting] = useState(false)
@@ -45,6 +53,10 @@ function Admin() {
   const [editingPostId, setEditingPostId] = useState(null)
   const [allPosts, setAllPosts] = useState([])
   const [postsLoading, setPostsLoading] = useState(false)
+  const [bookings, setBookings] = useState([])
+  const [bookingsLoading, setBookingsLoading] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [messagesLoading, setMessagesLoading] = useState(false)
   const [trackFilter, setTrackFilter] = useState('all')
 
   useEffect(() => {
@@ -126,17 +138,49 @@ function Admin() {
     }
   }
 
-  useEffect(() => {
-    if (currentAdmin) {
-      loadAdminPosts()
+  const loadAdminBookings = async () => {
+    setBookingsLoading(true)
+    try {
+      const data = await fetchAdminBookings()
+      const bookingRows = (data.bookings || []).sort(
+        (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
+      )
+      setBookings(bookingRows)
+    } catch (err) {
+      console.error('Failed to load bookings:', err)
+    } finally {
+      setBookingsLoading(false)
     }
-  }, [currentAdmin])
+  }
 
-  const pickDoc = (file) => {
+  const loadAdminMessages = async () => {
+    setMessagesLoading(true)
+    try {
+      const data = await fetchAdminMessages()
+      const messageRows = (data.messages || []).sort(
+        (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
+      )
+      setMessages(messageRows)
+    } catch (err) {
+      console.error('Failed to load messages:', err)
+    } finally {
+      setMessagesLoading(false)
+    }
+  }
+
+  function pickDoc(file) {
     setSelectedDocUrl(file.url)
     setSelectedDocKey(file.storageKey || '')
     setSelectedDocLabel(file.filename || file.url)
   }
+
+  useEffect(() => {
+    if (currentAdmin) {
+      loadAdminPosts()
+      loadAdminBookings()
+      loadAdminMessages()
+    }
+  }, [currentAdmin])
 
   const submitPost = async (status = 'published') => {
     setError('')
@@ -239,6 +283,8 @@ function Admin() {
     setCurrentAdmin(null)
     setUploadedFiles([])
     setAllPosts([])
+    setBookings([])
+    setMessages([])
     setLoginSecretKey('')
     setLoginError('')
     setActivePage('dashboard')
@@ -281,8 +327,16 @@ function Admin() {
   if (authLoading) {
     return (
       <section className="admin-page">
-        <div className="admin-main" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
-          Loading admin access...
+        <div className="admin-main admin-main--loading">
+          <div className="admin-loading-shell" aria-label="Loading admin access">
+            <SkeletonLoader variant="title" className="admin-loading-shell__title" />
+            <div className="admin-loading-shell__grid">
+              <SkeletonLoader variant="small-rect" />
+              <SkeletonLoader variant="small-rect" />
+              <SkeletonLoader variant="small-rect" />
+            </div>
+            <SkeletonLoader variant="rect" className="admin-loading-shell__panel" />
+          </div>
         </div>
       </section>
     )
@@ -307,7 +361,7 @@ function Admin() {
       <AdminSidebar activePage={activePage} onPageChange={setActivePage} currentAdmin={currentAdmin} onLogout={handleLogout} />
 
       <div className="admin-main">
-        {activePage === 'dashboard' && <Dashboard stats={stats} recentPosts={recentPosts} />}
+        {activePage === 'dashboard' && <Dashboard stats={stats} recentPosts={recentPosts} loading={postsLoading} />}
 
         {activePage === 'posts' && (
           <Posts
@@ -365,8 +419,41 @@ function Admin() {
           />
         )}
 
+        {activePage === 'bookings' && (
+          <Bookings
+            bookings={bookings}
+            loading={bookingsLoading}
+            currentAdmin={currentAdmin}
+            onRespondBooking={(bookingId, payload) => respondToBooking(bookingId, payload)}
+            onReloadBookings={loadAdminBookings}
+            onDeleteBooking={async (bookingId) => {
+              try {
+                await deleteBooking(bookingId)
+              } catch (err) {
+                throw err
+              }
+            }}
+          />
+        )}
+
+        {activePage === 'messages' && (
+          <Messages
+            messages={messages}
+            loading={messagesLoading}
+            currentAdmin={currentAdmin}
+            onDeleteMessage={async (messageId) => {
+              try {
+                await deleteAdminMessage(messageId)
+                await loadAdminMessages()
+              } catch (err) {
+                throw err
+              }
+            }}
+          />
+        )}
+
         {activePage === 'analytics' && <Analytics onPageChange={setActivePage} />}
-        {activePage === 'all-posts' && <AllPosts posts={allPosts} onEditPost={editPost} onDeletePost={deletePost} />}
+        {activePage === 'all-posts' && <AllPosts posts={allPosts} loading={postsLoading} onEditPost={editPost} onDeletePost={deletePost} />}
         {activePage === 'settings' && <Settings currentAdmin={currentAdmin} />}
       </div>
 

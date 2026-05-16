@@ -1,0 +1,23 @@
+import '../styles/notification-popup.css'
+
+function NotificationPopup({ type = 'success', title, message, onClose }) {
+  return (
+    <div
+      className={`notification-popup notification-popup--${type}`}
+      role={type === 'error' ? 'alert' : 'status'}
+      aria-live={type === 'error' ? 'assertive' : 'polite'}
+    >
+      <div className="notification-popup__body">
+        <p className="notification-popup__title">{title}</p>
+        <p className="notification-popup__message">{message}</p>
+      </div>
+      {onClose ? (
+        <button type="button" className="notification-popup__close" onClick={onClose} aria-label="Close notification">
+          ×
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+export default NotificationPopup

@@ -1,8 +1,26 @@
 import React from 'react'
 import AdminStats from '../../components/admin/AdminStats'
+import SkeletonLoader from '../../components/SkeletonLoader'
 import '../../styles/adminStyles/dashboard.css'
 
-function Dashboard({ stats, recentPosts }) {
+function Dashboard({ stats, recentPosts, loading = false }) {
+  if (loading) {
+    return (
+      <div className="admin-page-content">
+        <header className="admin-header--dashboard">
+          <SkeletonLoader variant="title" className="admin-loading-shell__title" />
+        </header>
+
+        <div className="analytics-section" aria-label="Loading recent activity">
+          <SkeletonLoader variant="text" style={{ width: '180px', marginBottom: '12px' }} />
+          <SkeletonLoader variant="small-rect" style={{ marginBottom: '10px' }} />
+          <SkeletonLoader variant="small-rect" style={{ marginBottom: '10px' }} />
+          <SkeletonLoader variant="small-rect" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="admin-page-content">
       <header className="admin-header--dashboard">
