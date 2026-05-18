@@ -41,9 +41,8 @@ function Messages({ messages = [], loading = false, currentAdmin = null, onDelet
       // parent should reload messages; attempt to clear selection
       setSelectedMessageId('')
       setNotification({ visible: true, type: 'success', title: 'Deleted', message: 'Message deleted.' })
-    } catch (err) {
-      console.error('Failed to delete message', err)
-      setNotification({ visible: true, type: 'error', title: 'Delete failed', message: err?.message || 'Unable to delete message.' })
+    } catch {
+      setNotification({ visible: true, type: 'error', title: 'Delete failed', message: 'Unable to delete message.' })
     } finally {
       setDeleteInProgress(false)
       setConfirmingDelete(false)

@@ -25,8 +25,7 @@ export default function PdfActionsCard({ pdfUrl, fileName = 'document.pdf', titl
       a.remove()
       // free memory after short delay
       setTimeout(() => URL.revokeObjectURL(blobUrl), 2000)
-    } catch (err) {
-      console.error('Download failed', err)
+    } catch {
       setError('Download failed — opening in new tab as fallback.')
       // Fallback: open in new tab so the user can save manually
       window.open(pdfUrl, '_blank', 'noopener,noreferrer')

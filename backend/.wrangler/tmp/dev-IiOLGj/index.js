@@ -400,32 +400,6 @@ function isImageObjectKey(key) {
   return /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(String(key || ""));
 }
 __name(isImageObjectKey, "isImageObjectKey");
-function createMissingImageResponse(key, requestMethod) {
-  const label = escapeHtml(String(key || "Image unavailable"));
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1280" viewBox="0 0 960 1280" role="img" aria-label="Image unavailable">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f5f1ea" />
-      <stop offset="100%" stop-color="#e7ded2" />
-    </linearGradient>
-  </defs>
-  <rect width="960" height="1280" rx="36" fill="url(#bg)" />
-  <rect x="80" y="110" width="800" height="960" rx="28" fill="#ffffff" opacity="0.8" />
-  <rect x="150" y="190" width="660" height="520" rx="22" fill="#d7d0c7" />
-  <path d="M270 620 L410 480 L520 580 L640 430 L790 620 Z" fill="#b8b0a6" />
-  <circle cx="365" cy="360" r="58" fill="#ffffff" opacity="0.72" />
-  <text x="480" y="1110" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="42" fill="#6a6258">Image unavailable</text>
-  <text x="480" y="1168" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#8a8073">${label}</text>
-</svg>`;
-  const headers = {
-    "Content-Type": "image/svg+xml; charset=utf-8",
-    "Cache-Control": "no-store",
-    ...CORS_HEADERS
-  };
-  return requestMethod === "HEAD" ? new Response(null, { status: 200, headers }) : new Response(svg, { status: 200, headers });
-}
-__name(createMissingImageResponse, "createMissingImageResponse");
 function normalizePostType(postType) {
   return postType === "article" || postType === "blog" ? postType : null;
 }
@@ -881,6 +855,24 @@ var src_default = {
         await recordView(env, "file", String(storageKeyMatch.id));
       }
       const object = await env.RESEARCH_BUCKET.get(key);
+      if (isImageObjectKey(key)) {
+        if (!object) {
+          return jsonResponse({ message: "File not found." }, 404);
+        }
+        const headers2 = new Headers();
+        object.writeHttpMetadata(headers2);
+        headers2.set("etag", object.httpEtag);
+        headers2.set("cache-control", "public, max-age=300");
+        headers2.set("x-content-type-options", "nosniff");
+        headers2.set("Access-Control-Allow-Origin", CORS_HEADERS["Access-Control-Allow-Origin"]);
+        headers2.set("Access-Control-Allow-Methods", CORS_HEADERS["Access-Control-Allow-Methods"]);
+        headers2.set("Access-Control-Allow-Headers", CORS_HEADERS["Access-Control-Allow-Headers"]);
+        headers2.set("Access-Control-Max-Age", CORS_HEADERS["Access-Control-Max-Age"]);
+        return new Response(object.body, {
+          status: 200,
+          headers: headers2
+        });
+      }
       if (!object) {
         const storageKeyName = key.split("/").pop() || "";
         const storageKeySuffix = storageKeyName.replace(/^\d+-/, "");
@@ -911,7 +903,7 @@ var src_default = {
             }
           }
         }
-        if (String(key).includes("econsinsite_test_02") || String(key).endsWith("econsinsite_test_02.pdf")) {
+        if (String(key).includes("econinsite_test_02") || String(key).endsWith("econinsite_test_02.pdf") || String(key).includes("econinsight_test_02") || String(key).endsWith("econinsight_test_02.pdf")) {
           try {
             const publicUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
             const upstream = await fetch(publicUrl);
@@ -931,9 +923,6 @@ var src_default = {
           } catch (err) {
             return jsonResponse({ message: "Proxy error fetching sample PDF." }, 502);
           }
-        }
-        if (isImageObjectKey(key)) {
-          return createMissingImageResponse(key, request.method);
         }
         return jsonResponse({ message: "File not found." }, 404);
       }
@@ -1626,7 +1615,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-pGbZGm/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-ByyhrY/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1658,7 +1647,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-pGbZGm/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-ByyhrY/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

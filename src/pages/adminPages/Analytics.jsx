@@ -90,8 +90,8 @@ function Analytics({ onPageChange = () => {} }) {
         }
 
         setError('')
-      } catch (err) {
-        console.error('Failed to load analytics data:', err)
+      } catch {
+        // Intentionally silent in production.
         if (!cached?.posts?.length) {
           setError('Failed to load analytics data')
         }

@@ -20,8 +20,8 @@ const Home = () => {
         const data = await fetchPublishedPosts('article')
         const posts = (data.posts || []).sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))
         setLatestPosts(posts.slice(0, 4))
-      } catch (error) {
-        console.error('Error loading home page data:', error)
+      } catch {
+        // Intentionally silent in production.
       } finally {
         setLoading(false)
       }

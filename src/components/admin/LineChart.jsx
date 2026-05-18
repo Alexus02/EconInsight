@@ -75,8 +75,8 @@ export default function LineChart({ apiBase = '', days = 30 }) {
         const viewsPerPost = totalViews.map((tv, i) => Math.round((tv || 0) / (cumulative[i] || 1)))
 
         setData({ labels, totalViews, newPosts, viewsPerPost })
-      } catch (e) {
-        console.error('Failed to load snapshots', e)
+      } catch {
+        // Intentionally silent in production.
       }
     }
 
