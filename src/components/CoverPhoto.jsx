@@ -33,23 +33,11 @@ export default function CoverPhoto({ src, alt, className = '' }) {
   const handleLoad = () => {
     setLoading(false)
     setError(false)
-    try {
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log('[CoverPhoto] loaded', { src })
-      }
-    } catch (e) {}
   }
 
   const handleError = () => {
     setLoading(false)
     setError(true)
-    try {
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log('[CoverPhoto] error loading', { src })
-      }
-    } catch (e) {}
   }
 
   if (!src) {
@@ -64,12 +52,6 @@ export default function CoverPhoto({ src, alt, className = '' }) {
     return (
       <div className={`cover-photo ${className}`}>
         {placeholder}
-        {import.meta.env.DEV && (
-          <div className="cover-debug">
-            <div className="cover-debug__label">src: {devLabel}</div>
-            <div className="cover-debug__status">status: error</div>
-          </div>
-        )}
       </div>
     )
   }
@@ -84,12 +66,7 @@ export default function CoverPhoto({ src, alt, className = '' }) {
         onLoad={handleLoad}
         onError={handleError}
       />
-      {import.meta.env.DEV && (
-        <div className="cover-debug">
-          <div className="cover-debug__label">src: {devLabel}</div>
-          <div className="cover-debug__status">status: {loading ? 'loading' : (error ? 'error' : 'loaded')}</div>
-        </div>
-      )}
+      {/* no dev overlay */}
     </div>
   )
 }

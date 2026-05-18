@@ -57,14 +57,8 @@ const Blog = () => {
                         <img
                           src={post.coverImageUrl}
                           alt={post.title}
-                          loading={import.meta.env.DEV ? 'eager' : 'lazy'}
+                          loading="lazy"
                           decoding="async"
-                          onLoad={() => {
-                            try { if (import.meta.env.DEV) { console.log('[blog] image loaded', post.id, post.coverImageUrl) } } catch (e) {}
-                          }}
-                          onError={(e) => {
-                            try { if (import.meta.env.DEV) { console.log('[blog] image error', post.id, post.coverImageUrl, e) } } catch (err) {}
-                          }}
                         />
                       </div>
                     )}

@@ -40,9 +40,7 @@
 }
 
 /* Dev debug: make cover images visible with high-contrast outline */
-.cover-img {
-  outline: 3px solid rgba(220, 38, 38, 0.85) !important;
-}
+.cover-img { }
 
 .cover-placeholder {
   width: min(220px, 70%);
@@ -52,21 +50,4 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Dev debug overlay */
-.cover-debug {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  z-index: 30;
-  max-width: 80%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cover-debug__label { opacity: 0.95 }
-.cover-debug__status { opacity: 0.85; margin-top: 4px }
+/* debug overlay removed */

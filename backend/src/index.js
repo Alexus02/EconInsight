@@ -1036,18 +1036,7 @@ export default {
         await recordView(env, 'file', String(storageKeyMatch.id))
       }
 
-      console.log('[worker] GET /api/files/object key=', key)
       const object = await env.RESEARCH_BUCKET.get(key)
-      console.log('[worker] RESEARCH_BUCKET.get ->', !!object)
-      if (object) {
-        try {
-          const ct = object?.httpMetadata?.contentType || object?.contentType || 'unknown'
-          console.log('[worker] object contentType =', ct)
-        } catch (e) {
-          console.log('[worker] object metadata read error', e)
-        }
-      }
-
       if (!object) {
         // If a newer R2 key was referenced but the underlying object was not
         // present yet, try to resolve a matching uploaded file by filename so
@@ -1067,16 +1056,8 @@ export default {
             .first()
 
           if (fallback?.storageKey && fallback.storageKey !== key) {
-            console.log('[worker] trying fallback storageKey=', fallback.storageKey)
             const fallbackObject = await env.RESEARCH_BUCKET.get(fallback.storageKey)
-            console.log('[worker] fallback RESEARCH_BUCKET.get ->', !!fallbackObject)
             if (fallbackObject) {
-              try {
-                const fct = fallbackObject?.httpMetadata?.contentType || fallbackObject?.contentType || 'unknown'
-                console.log('[worker] fallback object contentType =', fct)
-              } catch (e) {
-                console.log('[worker] fallback object metadata read error', e)
-              }
               const headers = new Headers()
               fallbackObject.writeHttpMetadata(headers)
               headers.set('etag', fallbackObject.httpEtag)
