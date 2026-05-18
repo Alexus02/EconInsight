@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const DEFAULT_API_BASE_URL = 'https://econinsight-api.corporate-affairs.workers.dev'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL
 const HOST_PORTAL_TOKEN = import.meta.env.VITE_HOST_PORTAL_TOKEN || ''
 const ADMIN_SESSION_STORAGE_KEY = 'econinsight.admin.session-token'
 

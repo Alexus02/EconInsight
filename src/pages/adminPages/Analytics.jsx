@@ -4,6 +4,8 @@ import '../../styles/adminStyles/analytics.css'
 import LineChart from '../../components/admin/LineChart'
 import SkeletonLoader from '../../components/SkeletonLoader'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://econinsight-api.corporate-affairs.workers.dev'
+
 const ANALYTICS_POSTS_CACHE_KEY = 'econinsight.analytics.posts.v1'
 
 let analyticsPostsMemoryCache = {
@@ -193,7 +195,7 @@ function Analytics({ onPageChange = () => {} }) {
       </div>
 
       <div className="analytics-section">
-        <LineChart apiBase={import.meta.env.VITE_API_BASE_URL || ''} days={30} />
+        <LineChart apiBase={API_BASE_URL} days={30} />
 
         <div className='analytics-details'>
           <h2>Top Performing Posts</h2>
