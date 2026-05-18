@@ -61,7 +61,17 @@ function toDevObjectProxyUrl(rawUrl) {
     return normalizedUrl
   }
 
-  return `/api/files/object/${encodeURIComponent(String(normalizedUrl))}`
+  const objectKey = String(normalizedUrl).replace(/^\//, '')
+  const proxied = `/api/files/object/${encodeURIComponent(objectKey)}`
+  // Helpful dev logging to inspect mapping from storage key -> proxied API URL
+  try {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.log('[fileApi] toDevObjectProxyUrl', { rawUrl, normalizedUrl, objectKey, proxied })
+    }
+  } catch (e) {}
+
+  return proxied
 }
 
 function mapFileRecord(file) {
@@ -94,6 +104,22 @@ function mapPostRecord(post) {
     )),
   }
 }
+
+// Log mapped post data in dev for easier debugging of image URLs
+try {
+  if (import.meta.env.DEV) {
+    // wrap mapPostRecord to include a debug log
+    const _originalMapPostRecord = mapPostRecord
+    mapPostRecord = function (post) {
+      const mapped = _originalMapPostRecord(post)
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[fileApi] mapPostRecord', { id: post?.id, coverImageUrl: mapped?.coverImageUrl })
+      } catch (e) {}
+      return mapped
+    }
+  }
+} catch (e) {}
 
 function mapBookingRecord(booking) {
   if (!booking) {

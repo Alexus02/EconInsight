@@ -2,6 +2,10 @@
   display: grid;
   gap: 28px;
   padding: 24px 0 40px;
+  background:
+    radial-gradient(circle at top left, rgba(39, 119, 131, 0.08), transparent 34%),
+    radial-gradient(circle at top right, rgba(196, 32, 38, 0.06), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
 }
 
 .booking-hero {
@@ -9,9 +13,25 @@
   grid-template-columns: 1.1fr 0.9fr;
   gap: 24px;
   align-items: center;
-  padding: 24px;
+  padding: 28px;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  background: linear-gradient(135deg, #ffffff 0%, #f7f9fc 100%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 249, 252, 0.98) 100%);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(17, 17, 17, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+.booking-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto -120px -120px auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(39, 119, 131, 0.08), transparent 70%);
+  pointer-events: none;
 }
 
 .booking-hero__content {
@@ -50,6 +70,9 @@
 
 .booking-hero__media {
   min-height: 280px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(17, 17, 17, 0.12);
 }
 
 .booking-hero__image {
@@ -69,9 +92,12 @@
 
 .booking-form-card,
 .booking-aside__card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  padding: 22px;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(17, 17, 17, 0.05);
+  backdrop-filter: blur(8px);
 }
 
 .booking-form-card {
@@ -113,6 +139,16 @@
   padding: 12px 14px;
   background: #fff;
   color: #111111;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.booking-form-grid input:focus,
+.booking-form-grid textarea:focus {
+  outline: none;
+  border-color: #277783;
+  box-shadow: 0 0 0 4px rgba(39, 119, 131, 0.12);
+  transform: translateY(-1px);
 }
 
 .booking-form-grid textarea {
@@ -147,6 +183,8 @@
 
 .booking-form__submit {
   width: fit-content;
+  padding-inline: 18px;
+  box-shadow: 0 14px 28px rgba(39, 119, 131, 0.22);
 }
 
 .booking-aside {
@@ -170,6 +208,22 @@
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
 }
 
+.booking-aside__card h3 {
+  letter-spacing: -0.02em;
+}
+
+.booking-aside__card li::marker {
+  color: #277783;
+}
+
+.booking-aside__card ul li {
+  padding-left: 2px;
+}
+
+.booking-aside__button {
+  align-self: start;
+}
+
 .booking-aside__button {
   width: fit-content;
 }
@@ -180,7 +234,27 @@
     grid-template-columns: 1fr;
   }
 
+  .booking-hero {
+    padding: 20px;
+  }
+
   .booking-form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .booking-page {
+    padding-top: 12px;
+  }
+
+  .booking-hero {
+    border-radius: 18px;
+  }
+
+  .booking-form-card,
+  .booking-aside__card {
+    padding: 18px;
+    border-radius: 18px;
   }
 }

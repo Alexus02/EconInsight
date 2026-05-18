@@ -244,11 +244,61 @@
 @media (max-width: 768px) {
   .services-hero {
     grid-template-columns: 1fr;
-    padding: 2rem;
+    gap: 1.5rem;
+    padding: 1.25rem 1rem;
   }
 
   .services-hero__content h1 {
     font-size: 2rem;
+  }
+
+  .services-hero__content {
+    gap: 1rem;
+  }
+
+  .services-hero__cta {
+    margin-top: 0;
+  }
+
+  .services-hero__media {
+    order: -1;
+  }
+
+  .services-hero__image {
+    max-height: 280px;
+    border-radius: 12px;
+  }
+
+  .services-grid-section,
+  .service-process,
+  .services-cta {
+    padding: 2rem 1rem;
+  }
+
+  .services-grid,
+  .process-steps {
+    gap: 1rem;
+  }
+
+  .services-service-card {
+    padding: 8px;
+  }
+
+  .services-service-card__icon {
+    height: 130px;
+  }
+
+  .services-service-card__description {
+    padding: 0 10px 10px;
+  }
+
+  .services-service-card__details {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .process-step {
+    padding: 1.5rem;
   }
 
   .services-grid {
@@ -265,5 +315,9 @@
 
   .services-cta h2 {
     font-size: 1.75rem;
+  }
+
+  .services-cta {
+    gap: 1rem;
   }
 }

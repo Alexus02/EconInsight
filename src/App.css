@@ -292,6 +292,14 @@
     width: 100%;
   }
 
+  .app-shell {
+    padding: 16px;
+  }
+
+  .page {
+    padding: 16px 0 56px;
+  }
+
   .site-header {
     padding: 20px 0 22px;
   }
