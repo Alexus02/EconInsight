@@ -12,7 +12,7 @@ database_name = "econ-insight-d1"
 database_id = "60040923-eb74-4982-85bf-bfc62809d058"
 
 [env.development]
-vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "dev-signing-secret-67890", R2_PUBLIC_BASE_URL = "http://localhost:8787/api/files/object" }
+vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "dev-signing-secret-67890", R2_PUBLIC_BASE_URL = "", BOOKING_FROM_EMAIL = "EconInsight <bookings@econinsight.com>", RESEND_API_KEY = "" }
 
 [[env.development.r2_buckets]]
 binding = "RESEARCH_BUCKET"
@@ -24,7 +24,7 @@ database_name = "econ-insight-d1"
 database_id = "60040923-eb74-4982-85bf-bfc62809d058"
 
 [env.production]
-vars = { HOST_PORTAL_TOKEN = "", UPLOAD_SIGNING_SECRET = "", R2_PUBLIC_BASE_URL = "https://files.econinsight.com" }
+vars = { HOST_PORTAL_TOKEN = "", UPLOAD_SIGNING_SECRET = "", R2_PUBLIC_BASE_URL = "https://files.econinsight.com", BOOKING_FROM_EMAIL = "EconInsight <bookings@econinsight.com>", RESEND_API_KEY = "" }
 
 [env.local]
-vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "local-test-secret" }
+vars = { HOST_PORTAL_TOKEN = "202202", UPLOAD_SIGNING_SECRET = "local-test-secret", BOOKING_FROM_EMAIL = "EconInsight <bookings@econinsight.com>", RESEND_API_KEY = "" }

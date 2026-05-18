@@ -10,51 +10,54 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
-  align-items: center;
+  align-items: start;
   padding: 6rem 2rem;
-
+  justify-items: start;
+  height: auto;
 }
 
-.hero__content {
+.home-services .home-service-card {
+  background: transparent;
+  padding: 12px;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 0;
 }
 
-.hero__title {
+.home-services .home-service-card:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-services .home-service-card__icon {
   font-size: 3rem;
-  font-weight: 700;
-  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.home-services .home-service-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
   color: #0a0e27;
+  margin-bottom: 0.5rem;
 }
 
-.hero__subtitle {
-  font-size: 1.1rem;
-  line-height: 1.6;
+.home-services .home-service-card p {
+  font-size: 0.95rem;
   color: #5a6c7d;
+  line-height: 1.6;
 }
 
-.hero__actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+.hero__image {
+  width: 500px;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 12px 0 12px 0;
 }
 
-.hero__media {
-  width: 100%;
-  height: 400px;
-}
 
-.placeholder-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .placeholder-large {
   min-height: 300px;
@@ -85,6 +88,14 @@ svg {
 
 .why-choose-us__media {
   order: -1;
+  height: 100%;
+  width: 100%;
+}
+.why-choose-us__image {
+  width: 500px;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 12px 0;
 }
 
 .why-choose-us__content h2 {
@@ -209,47 +220,64 @@ svg {
 
 /* Services Section */
 .home-services {
-  padding: 4rem 2rem;
+  padding: 2rem 1rem;
   background: #fff;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: start;
 }
 
 .services-preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 8px;
+  margin-bottom: 0;
 }
 
-.service-card {
-  background: #f9fafb;
-  padding: 2rem;
-  border-radius: 12px;
-  text-align: center;
-  transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
+.home-services .section-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
 }
 
-.service-card:hover {
-  background: #fff;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+.home-service-card:hover {
+  background: transparent;
+  box-shadow: none;
 }
 
-.service-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.home-service-card__icon {
+  width: 100%;
+  height: 150px;
 }
 
-.service-card h3 {
-  font-size: 1.25rem;
+.home-service-card__image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+}
+
+.home-service-card h3 {
+  font-size: 1.15rem;
+  width: 100%;
   font-weight: 600;
   color: #0a0e27;
   margin-bottom: 0.5rem;
 }
 
-.service-card p {
+.home-service-card p {
   font-size: 0.95rem;
   color: #5a6c7d;
   line-height: 1.6;
+}
+
+.home-service-card__description {
+  min-height: 110px;
+  border-left: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  padding: 0 12px 12px;
 }
 
 /* Testimonials Section */
@@ -276,7 +304,7 @@ svg {
   font-size: 1rem;
   line-height: 1.7;
   color: #333;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   font-style: italic;
 }
 
@@ -288,9 +316,9 @@ svg {
 
 /* CTA Section */
 .home-cta {
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 2rem 1rem;
+  background: #F7F7F7;
+  color: black;
   text-align: center;
   display: flex;
   flex-direction: column;

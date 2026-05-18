@@ -2,7 +2,7 @@ import React from 'react'
 
 function AdminStats({ stats }) {
   return (
-    <section className="admin-stats-grid">
+    <section className="dashboard-stats-grid">
       <article>
         <p>Total Posts</p>
         <strong>{stats.total}</strong>

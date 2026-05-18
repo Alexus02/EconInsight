@@ -4,7 +4,17 @@ import { validateResearchFile } from '../lib/fileRules'
 import PDFPreview from './pdf-preview'
 import '../styles/file-upload.css'
 
-function FileUpload({ uploaderId = 'anonymous', onUploaded, label = 'Upload File' }) {
+function FileUpload({
+  uploaderId = 'anonymous',
+  onUploaded,
+  label = 'Upload File',
+  title = 'Upload files',
+  kicker = 'Research upload',
+  hint = 'Select files to upload to object storage.',
+  badge = 'PDF, DOC, DOCX, PNG, JPG up to 20MB',
+  variant = 'default',
+  accept = '.pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg',
+}) {
   const [selectedFiles, setSelectedFiles] = useState([])
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
@@ -133,23 +143,23 @@ function FileUpload({ uploaderId = 'anonymous', onUploaded, label = 'Upload File
   }
 
   return (
-    <div className="upload-card">
+    <div className={`upload-card upload-card--${variant}`}>
       <div className="upload-card__header">
         <div>
-          <p className="upload-kicker">Research upload</p>
-          <h2>Upload papers and media</h2>
+          <p className="upload-kicker">{kicker}</p>
+          <h2>{title}</h2>
         </div>
-        <span className="upload-limit">PDF, DOC, DOCX, PNG, JPG up to 20MB</span>
+        <span className="upload-limit">{badge}</span>
       </div>
 
       <label className="upload-dropzone">
         <span className="upload-dropzone__title">Choose files</span>
-        <span className="upload-dropzone__hint">Select multiple files. They stay off your server and go straight to object storage.</span>
+        <span className="upload-dropzone__hint">{hint}</span>
         <input
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg"
+          accept={accept}
           onChange={handleFileChange}
         />
       </label>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchPublishedPosts } from '../lib/fileApi'
+import SkeletonLoader from '../components/SkeletonLoader'
 import '../styles/library.css'
 
 const Research = () => {
@@ -78,14 +79,31 @@ const Research = () => {
 
       <div className="research-library">
         {loading ? (
-          <div className="loading">Loading research...</div>
+          <div className="research-grid" aria-busy="true" aria-live="polite">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <article key={index} className="research-card research-card--skeleton" aria-hidden="true">
+                <SkeletonLoader variant="rect" className="research-card__skeleton-media" />
+                <div className="research-card__content">
+                  <SkeletonLoader variant="title" style={{ width: '92%' }} />
+                  <SkeletonLoader variant="text" style={{ width: '78%' }} />
+                  <SkeletonLoader variant="text" style={{ width: '55%' }} />
+                </div>
+              </article>
+            ))}
+          </div>
         ) : filteredPosts.length > 0 ? (
           <div className="research-grid">
             {filteredPosts.map(post => (
               <Link key={post.id} to={`/research/${post.id}`} className="research-card">
                 <div className="research-card__media">
                   {post.coverImageUrl ? (
-                    <img src={post.coverImageUrl} alt={post.title} className="research-card__image" />
+                    <img
+                      src={post.coverImageUrl}
+                      alt={post.title}
+                      className="research-card__image"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className="placeholder-image placeholder-small">
                       <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">

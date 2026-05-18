@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom'
 import { fetchPublishedPosts } from '../lib/fileApi'
 import SkeletonLoader from '../components/SkeletonLoader'
 import '../styles/home.css'
+import heroImage from '../assets/hero-money.jpg'
+import secondaryImage from '../assets/econInsight.jpg'
+import serviceImg1 from '../assets/market-research.jpg'
+import serviceImg4 from '../assets/consultation.jpg'
+import serviceImg3 from '../assets/policy-analysis.jpg'
+import serviceImg2 from '../assets/strategic-consultation.jpg'
 
 const Home = () => {
   const [latestPosts, setLatestPosts] = useState([])
@@ -47,12 +53,7 @@ const Home = () => {
           </div>
         </div>
         <div className="hero__media">
-          <div className="placeholder-image placeholder-large">
-            <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-              <rect width="400" height="300" fill="#e5e5e5" />
-              <text x="200" y="150" textAnchor="middle" fontSize="16" fill="#999">Hero Image</text>
-            </svg>
-          </div>
+          <img src={heroImage} alt="EconInsight" className="hero__image" />
         </div>
       </section>
 
@@ -108,12 +109,7 @@ const Home = () => {
  
       <section className="why-choose-us">
         <div className="why-choose-us__media">
-          <div className="placeholder-image placeholder-medium">
-            <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-              <rect width="400" height="400" fill="#e5e5e5" />
-              <text x="200" y="200" textAnchor="middle" fontSize="16" fill="#999">Why Choose Us Image</text>
-            </svg>
-          </div>
+          <img src={secondaryImage} alt="Why Choose EconInsight" className="why-choose-us__image" />
         </div>
         <div className="why-choose-us__content">
           <h2>Why Choose EconInsight</h2>
@@ -134,25 +130,41 @@ const Home = () => {
           <p>Comprehensive economic research and consulting solutions</p>
         </div>
         <div className="services-preview-grid">
-          <div className="service-card">
-            <div className="service-icon">📊</div>
+          <div className="home-service-card">
+            <div className="home-service-card__icon">
+              <img src={serviceImg1} alt="Economic Research" className='home-service-card__image'/>
+            </div>
+            <div className='home-service-card__description'>
             <h3>Economic Research</h3>
             <p>In-depth analysis of economic trends, market dynamics, and policy impacts</p>
           </div>
-          <div className="service-card">
-            <div className="service-icon">📈</div>
+                    </div>
+          <div className="home-service-card">
+            <div className="home-service-card__icon">
+              <img src={serviceImg2} alt="Market Intelligence" className='home-service-card__image'/>
+            </div>
+            <div className='home-service-card__description'>
             <h3>Market Intelligence</h3>
             <p>Competitive analysis, market sizing, and opportunity assessment</p>
           </div>
-          <div className="service-card">
-            <div className="service-icon">🎯</div>
+          </div>
+          <div className="home-service-card">
+            <div className="home-service-card__icon">
+                  <img src={serviceImg3} alt="Policy Analysis" className='home-service-card__image'/>
+                </div>
+            <div className='home-service-card__description'>
+            <h3>Policy Analysis</h3>
+            <p>Government policy evaluation and impact assessment</p>
+          </div>
+          </div>
+          <div className="home-service-card">
+            <div className="home-service-card__icon">
+              <img src={serviceImg4} alt="Strategic Consulting" className='home-service-card__image' />
+            </div>
+            <div className='home-service-card__description'>
             <h3>Strategic Consulting</h3>
             <p>Business strategy development informed by economic expertise</p>
           </div>
-          <div className="service-card">
-            <div className="service-icon">🔍</div>
-            <h3>Policy Analysis</h3>
-            <p>Government policy evaluation and impact assessment</p>
           </div>
         </div>
         <div className="section-cta">

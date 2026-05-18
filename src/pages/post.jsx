@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { fetchPublishedPostById, recordView } from '../lib/fileApi'
 import '../styles/article-viewer.css'
+import PdfActionsCard from '../components/PdfActionsCard'
+import CoverPhoto from '../components/CoverPhoto'
 
 function Post() {
   const { id } = useParams()
@@ -45,7 +47,7 @@ function Post() {
           <header className="article-header">
             {post.coverImageUrl && (
               <div className="article-cover">
-                <img src={post.coverImageUrl} alt={post.title} />
+                <CoverPhoto src={post.coverImageUrl} alt={post.title} />
               </div>
             )}
             <p className="library-kicker">{post.postType === 'article' ? 'Research article' : 'Blog post'}</p>
@@ -59,9 +61,20 @@ function Post() {
           {post.articleFileUrl ? (
             <div className="document-viewer">
               {post.articleFileUrl.endsWith('.pdf') ? (
-                <iframe title={post.title} src={post.articleFileUrl} style={{ width: '100%', minHeight: '70vh', border: 0 }} />
+                // Use the actions card for PDFs: Open in new tab or download reliably
+                <PdfActionsCard
+                  pdfUrl={post.articleFileUrl}
+                  fileName={(post.articleFileUrl || '').split('/').pop().split('?')[0]}
+                  title={post.title}
+                />
               ) : post.articleFileUrl.match(/\.(jpe?g|png|gif)$/i) ? (
-                <img src={post.articleFileUrl} alt={post.title} style={{ width: '100%', borderRadius: '16px' }} />
+                <img
+                  src={post.articleFileUrl}
+                  alt={post.title}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: '100%', borderRadius: '16px' }}
+                />
               ) : (
                 <div className="viewer-placeholder">
                   <div className="viewer-icon">📄</div>

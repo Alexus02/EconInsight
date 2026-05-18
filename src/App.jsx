@@ -6,6 +6,7 @@ import Research from './pages/research'
 import ResearchDetails from './pages/research-details'
 import Admin from './pages/admin'
 import Services from './pages/services'
+import Booking from './pages/booking'
 import Blog from './pages/blog'
 import Post from './pages/post'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
@@ -25,6 +26,7 @@ function AppContent() {
           <Route path="/research/:id" element={<ResearchDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/booking" element={<Booking />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/posts/:id" element={<Post />} />
           

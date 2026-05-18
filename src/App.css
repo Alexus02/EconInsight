@@ -148,7 +148,7 @@
 }
 
 .hero__visual--portrait {
-  background: linear-gradient(160deg, #c42026 0%, #e23a2b 42%, #111111 42%, #111111 100%);
+  background: transparent;
 }
 
 .about-section {
