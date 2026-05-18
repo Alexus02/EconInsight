@@ -17,8 +17,8 @@ const Blog = () => {
           (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
         )
         setPosts(publishedPosts)
-      } catch (error) {
-        console.error('Error loading blog posts:', error)
+      } catch {
+        // Intentionally silent in production.
       } finally {
         setLoading(false)
       }

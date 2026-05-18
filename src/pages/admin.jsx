@@ -74,8 +74,8 @@ function Admin() {
         } else {
           clearStoredAdminSessionToken()
         }
-      } catch (err) {
-        console.error('Failed to load admin session', err)
+      } catch {
+        // Intentionally silent in production.
         clearStoredAdminSessionToken()
       } finally {
         if (active) {
@@ -103,8 +103,8 @@ function Admin() {
         const filesResult = await fetchUploadedFiles()
         if (!active) return
         setUploadedFiles(Array.isArray(filesResult) ? filesResult : filesResult.files || [])
-      } catch (err) {
-        console.error('Failed to load uploaded files', err)
+      } catch {
+        // Intentionally silent in production.
       }
     }
 
@@ -133,8 +133,8 @@ function Admin() {
         (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
       )
       setAllPosts(posts)
-    } catch (err) {
-      console.error('Failed to load admin posts:', err)
+    } catch {
+      // Intentionally silent in production.
     } finally {
       setPostsLoading(false)
     }
@@ -148,8 +148,8 @@ function Admin() {
         (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
       )
       setBookings(bookingRows)
-    } catch (err) {
-      console.error('Failed to load bookings:', err)
+    } catch {
+      // Intentionally silent in production.
     } finally {
       setBookingsLoading(false)
     }
@@ -163,8 +163,8 @@ function Admin() {
         (a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at)
       )
       setMessages(messageRows)
-    } catch (err) {
-      console.error('Failed to load messages:', err)
+    } catch {
+      // Intentionally silent in production.
     } finally {
       setMessagesLoading(false)
     }
@@ -282,8 +282,8 @@ function Admin() {
     try {
       await deleteAdminPost(post.id)
       await loadAdminPosts()
-    } catch (err) {
-      console.error('Failed to delete post', err)
+    } catch {
+      // Intentionally silent in production.
     }
   }
 

@@ -1037,6 +1037,33 @@ export default {
       }
 
       const object = await env.RESEARCH_BUCKET.get(key)
+
+      // If this is an image request, keep image handling simple: return
+      // the object if present or a 404 if missing so the frontend sees the
+      // real error (no placeholder).
+      if (isImageObjectKey(key)) {
+        if (!object) {
+          return jsonResponse({ message: 'File not found.' }, 404)
+        }
+
+        const headers = new Headers()
+        object.writeHttpMetadata(headers)
+        headers.set('etag', object.httpEtag)
+        headers.set('cache-control', 'public, max-age=300')
+        headers.set('x-content-type-options', 'nosniff')
+        headers.set('Access-Control-Allow-Origin', CORS_HEADERS['Access-Control-Allow-Origin'])
+        headers.set('Access-Control-Allow-Methods', CORS_HEADERS['Access-Control-Allow-Methods'])
+        headers.set('Access-Control-Allow-Headers', CORS_HEADERS['Access-Control-Allow-Headers'])
+        headers.set('Access-Control-Max-Age', CORS_HEADERS['Access-Control-Max-Age'])
+
+        return new Response(object.body, {
+          status: 200,
+          headers,
+        })
+      }
+
+      // Non-image files (PDFs and others): preserve existing fallback
+      // behaviour so PDFs continue to work in local development.
       if (!object) {
         // If a newer R2 key was referenced but the underlying object was not
         // present yet, try to resolve a matching uploaded file by filename so
@@ -1079,10 +1106,12 @@ export default {
         // Developer convenience: if a specific test key is requested but not
         // present in local R2, redirect to a public sample PDF so the frontend
         // can render something during local development.
-        if (String(key).includes('econsinsite_test_02') || String(key).endsWith('econsinsite_test_02.pdf')) {
-          // Proxy a public sample PDF through the Worker so we can set CORS
-          // headers. This avoids the browser blocking the resource when
-          // redirected to an external origin without CORS.
+        if (
+          String(key).includes('econinsite_test_02') ||
+          String(key).endsWith('econinsite_test_02.pdf') ||
+          String(key).includes('econinsight_test_02') ||
+          String(key).endsWith('econinsight_test_02.pdf')
+        ) {
           try {
             const publicUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
             const upstream = await fetch(publicUrl)
@@ -1091,7 +1120,6 @@ export default {
             }
 
             const proxiedHeaders = new Headers(upstream.headers)
-            // Ensure CORS headers are present for the browser
             proxiedHeaders.set('Access-Control-Allow-Origin', CORS_HEADERS['Access-Control-Allow-Origin'])
             proxiedHeaders.set('Access-Control-Allow-Methods', CORS_HEADERS['Access-Control-Allow-Methods'])
             proxiedHeaders.set('Access-Control-Allow-Headers', CORS_HEADERS['Access-Control-Allow-Headers'])
@@ -1105,10 +1133,6 @@ export default {
           } catch (err) {
             return jsonResponse({ message: 'Proxy error fetching sample PDF.' }, 502)
           }
-        }
-
-        if (isImageObjectKey(key)) {
-          return createMissingImageResponse(key, request.method)
         }
 
         return jsonResponse({ message: 'File not found.' }, 404)

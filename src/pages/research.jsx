@@ -20,8 +20,8 @@ const Research = () => {
         )
         setPosts(postList)
         setFilteredPosts(postList)
-      } catch (error) {
-        console.error('Error loading research posts:', error)
+      } catch {
+        // Intentionally silent in production.
       } finally {
         setLoading(false)
       }

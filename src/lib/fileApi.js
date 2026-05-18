@@ -203,7 +203,7 @@ export async function recordView(resourceType, resourceId) {
   })
 
   if (!response.ok) {
-    console.warn('Failed to record view:', response.statusText)
+    // Ignore non-critical view tracking failures in production.
   }
 }
 
@@ -286,14 +286,12 @@ export async function fetchAdminPosts() {
   const headers = {
     ...getHostHeaders(),
   }
-  console.log('📤 Fetching admin posts with headers:', headers)
-  
+
   const response = await fetch(withBase('/api/admin/posts'), {
     headers,
   })
 
   if (!response.ok) {
-    console.error('❌ Admin posts fetch failed:', response.status, response.statusText)
     throw new Error(await readErrorMessage(response, 'Unable to load admin posts.'))
   }
 
