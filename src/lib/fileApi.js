@@ -21,14 +21,24 @@ function toClientFileUrl(rawUrl) {
     return rawUrl
   }
 
-  // Normalize storage keys that may be returned without a leading slash
-  // e.g. "research-files/host/12345.pdf" -> "/research-files/host/12345.pdf"
   try {
     const s = String(rawUrl)
-    if (s.startsWith('research-files/')) {
-      return `/${s}`
+    if (s.startsWith('/api/files/object/')) {
+      // Keep local dev on the Vite proxy, but make production requests
+      // absolute so they do not resolve against the Vercel domain.
+      return import.meta.env.DEV ? s : withBase(s)
     }
-  } catch {}
+
+    if (s.startsWith('research-files/')) {
+      return withBase(`/api/files/object/${encodeURIComponent(s)}`)
+    }
+
+    if (s.startsWith('/research-files/')) {
+      return withBase(`/api/files/object/${encodeURIComponent(s.replace(/^\//, ''))}`)
+    }
+  } catch {
+    return rawUrl
+  }
 
   try {
     const parsed = new URL(String(rawUrl))
