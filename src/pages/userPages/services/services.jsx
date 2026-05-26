@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import '../styles/services.css'
-import serviceImg1 from '../assets/economic-research.jpg'
-import serviceImg2 from '../assets/market-research.jpg'
-import serviceImg3 from '../assets/consultation.jpg'
-import serviceImg4 from '../assets/policy-analysis.jpg'
-import serviceImg5 from '../assets/hero-money.jpg'
-import serviceImg6 from '../assets/econInsight.jpg'
-import service_hero from '../assets/services_hero.jpg'
+import './services.css'
+import serviceImg1 from '../../../assets/economic-research.jpg'
+import serviceImg2 from '../../../assets/market-research.jpg'
+import serviceImg3 from '../../../assets/consultation.jpg'
+import serviceImg4 from '../../../assets/policy-analysis.jpg'
+import serviceImg5 from '../../../assets/hero-money.jpg'
+import serviceImg6 from '../../../assets/econInsight.jpg'
+import service_hero from '../../../assets/services_hero.jpg'
 
 
 const Services = () => {

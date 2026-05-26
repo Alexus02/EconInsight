@@ -1,4 +1,4 @@
-import '../styles/cv.css'
+import './cv.css'
 
 const sections = [
   {
