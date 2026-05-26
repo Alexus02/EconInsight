@@ -1,11 +1,12 @@
 import Header from './components/header'
 import Footer from './components/footer'
 import Home from './pages/home'
-import About from './pages/about'
+import About from './pages/userPages/about/about.jsx'
 import Research from './pages/research'
 import ResearchDetails from './pages/research-details'
 import Admin from './pages/admin'
 import Services from './pages/services'
+import Cv from './pages/cv'
 import Booking from './pages/booking'
 import Blog from './pages/blog'
 import Post from './pages/post'
@@ -26,6 +27,7 @@ function AppContent() {
           <Route path="/research/:id" element={<ResearchDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/cv" element={<Cv />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/posts/:id" element={<Post />} />

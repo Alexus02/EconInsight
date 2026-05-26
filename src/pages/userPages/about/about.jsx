@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import NotificationPopup from '../components/NotificationPopup'
-import { createContactSubmission } from '../lib/fileApi'
-import '../styles/about.css'
-import aboutHero from '../assets/econInshigt.webp'
+import NotificationPopup from '../../../components/NotificationPopup'
+import { createContactSubmission } from '../../../lib/fileApi'
+import './about.css'
+import aboutHero from '../../../assets/econInshigt.webp'
 
 function getInitialContactForm() {
   return {
