@@ -1,0 +1,363 @@
+/* Carousel used on About page contact panel and CV page */
+.cv-carousel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cv-carousel__viewport {
+  position: relative;
+  min-height: 200px;
+  width: 100%;
+  overflow: hidden;
+}
+.cv-carousel__slide {
+  position: absolute;
+  inset: 0;
+  padding: 14px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 360ms ease, transform 360ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cv-carousel__slide--active {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+}
+.cv-carousel__header {
+  text-align: left;
+}
+.cv-carousel__kicker {
+  font-size: 0.75rem;
+  color: rgba(17,17,17,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.cv-carousel__cards {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.cv-highlight-card {
+  flex: 1 1 0;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(17,17,17,0.06);
+  box-shadow: 0 8px 18px rgba(16,16,16,0.04);
+}
+.cv-highlight-card__label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+.cv-carousel__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cv-carousel__arrow {
+  background: transparent;
+  border: 0;
+  font-size: 1.4rem;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.cv-carousel__dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.cv-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.12);
+  border: 0;
+  cursor: pointer;
+}
+.cv-carousel__dot.is-active {
+  background: #277783;
+}
+
+@media (max-width: 900px) {
+  .cv-carousel__cards { flex-direction: column; }
+}
+.page--cv {
+  padding: 24px 0 72px;
+}
+
+.cv-hero {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 34px 0 22px;
+}
+
+.cv-hero__content {
+  display: grid;
+  gap: 10px;
+}
+
+.cv-hero__content h1,
+.cv-section-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.04em;
+  color: #111111;
+}
+
+.cv-hero__content h1 {
+  font-size: clamp(2.4rem, 5vw, 4.2rem);
+  line-height: 0.95;
+}
+
+.cv-hero__content p,
+.cv-section-header p {
+  color: #56524d;
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+.cv-full-list {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-top: 12px;
+}
+
+.cv-section-header {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cv-section-header h2 {
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+}
+
+.cv-accordion {
+  display: grid;
+  gap: 0;
+}
+
+.cv-accordion__item {
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+  transition: background-color 0.3s ease;
+}
+
+.cv-accordion__item:last-child {
+  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.cv-accordion__item:hover {
+  background-color: rgba(17, 17, 17, 0.015);
+}
+
+.cv-accordion__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 12px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: padding 0.3s ease;
+}
+
+.cv-accordion__trigger.is-open {
+  padding-bottom: 16px;
+}
+
+.cv-accordion__trigger:hover .cv-accordion__title,
+.cv-accordion__trigger.is-open .cv-accordion__title {
+  color: #277783;
+  transform: translateX(4px);
+}
+
+.cv-accordion__meta {
+  display: grid;
+  gap: 6px;
+}
+
+.cv-accordion__kicker {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #277783;
+  margin-bottom: 4px;
+}
+
+.cv-accordion__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  color: #111111;
+  line-height: 1.2;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.cv-accordion__icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f4f4f4;
+  border: 1px solid transparent;
+  color: #111111;
+  font-size: 1.2rem;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease, color 0.3s ease;
+}
+
+.cv-accordion__trigger:hover .cv-accordion__icon {
+  background: #ececec;
+}
+
+.cv-accordion__trigger.is-open .cv-accordion__icon {
+  transform: rotate(180deg);
+  background: #277783;
+  color: #ffffff;
+  border-color: #277783;
+}
+
+.cv-accordion__panel-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cv-accordion__panel-wrapper.is-open {
+  grid-template-rows: 1fr;
+}
+
+.cv-accordion__panel {
+  overflow: hidden;
+}
+
+.cv-accordion__panel-inner {
+  padding: 0 12px 28px 12px;
+}
+
+.cv-work-item__list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #4a4a4a;
+  line-height: 1.8;
+  display: grid;
+  gap: 12px;
+  font-size: 1.05rem;
+}
+
+.cv-work-item__list li::marker {
+  color: #277783;
+  font-size: 1.2em;
+}
+
+@media (max-width: 640px) {
+  .cv-hero {
+    padding: 20px 0 14px;
+  }
+
+  .cv-accordion__trigger {
+    padding: 16px 0;
+  }
+
+  .cv-accordion__icon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Carousel used on About page contact panel */
+.cv-carousel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cv-carousel__viewport {
+  position: relative;
+  min-height: 180px;
+  width: 100%;
+  overflow: hidden;
+}
+.cv-carousel__slide {
+  position: absolute;
+  inset: 0;
+  padding: 14px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 360ms ease, transform 360ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cv-carousel__slide--active {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+}
+.cv-carousel__header {
+  text-align: left;
+}
+.cv-carousel__kicker {
+  font-size: 0.75rem;
+  color: rgba(17,17,17,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.cv-carousel__cards {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.cv-highlight-card {
+  flex: 1 1 0;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(17,17,17,0.06);
+  box-shadow: 0 8px 18px rgba(16,16,16,0.04);
+}
+.cv-highlight-card__label {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+.cv-carousel__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cv-carousel__arrow {
+  background: transparent;
+  border: 0;
+  font-size: 1.4rem;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.cv-carousel__dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.cv-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.12);
+  border: 0;
+  cursor: pointer;
+}
+.cv-carousel__dot.is-active {
+  background: #277783;
+}

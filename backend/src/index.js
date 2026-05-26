@@ -13,7 +13,7 @@ const CORS_HEADERS = {
       'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, x-host-token, x-admin-session-token, cf-access-jwt-assertion',
       'Access-Control-Max-Age': '86400',
-}
+}  
 
 const ADMIN_SESSION_DAYS = 30
 const LEGACY_DEFAULT_ADMIN_EMAIL = 'admin@gmail.com'
