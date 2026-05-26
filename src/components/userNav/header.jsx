@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import '../styles/header.css'
+import './header.css'
 
 const Header = () => {
   const [showMenu, setShowMenu] = useState(false)

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchPublishedPosts } from '../lib/fileApi'
-import SkeletonLoader from '../components/SkeletonLoader'
-import '../styles/home.css'
-import heroImage from '../assets/hero-money.jpg'
-import secondaryImage from '../assets/econInsight.jpg'
-import serviceImg1 from '../assets/market-research.jpg'
-import serviceImg4 from '../assets/consultation.jpg'
-import serviceImg3 from '../assets/policy-analysis.jpg'
-import serviceImg2 from '../assets/strategic-consultation.jpg'
+import { fetchPublishedPosts } from '../../../lib/fileApi'
+import SkeletonLoader from '../../../components/SkeletonLoader'
+import './home.css'
+import heroImage from '../../../assets/hero-money.jpg'
+import secondaryImage from '../../../assets/econInsight.jpg'
+import serviceImg1 from '../../../assets/market-research.jpg'
+import serviceImg4 from '../../../assets/consultation.jpg'
+import serviceImg3 from '../../../assets/policy-analysis.jpg'
+import serviceImg2 from '../../../assets/strategic-consultation.jpg'
 
 const Home = () => {
   const [latestPosts, setLatestPosts] = useState([])
