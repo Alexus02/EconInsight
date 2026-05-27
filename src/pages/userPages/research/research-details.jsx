@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { fetchPublishedPostById, fetchPublishedPosts, recordView } from '../lib/fileApi'
-import '../styles/article-viewer.css'
-import CoverPhoto from '../components/CoverPhoto'
+import { fetchPublishedPostById, fetchPublishedPosts, recordView } from '../../../lib/fileApi'
+import './article-viewer.css'
+import CoverPhoto from '../../../components/CoverPhoto'
 
 function ResearchDetails() {
   const { id } = useParams()
