@@ -17,6 +17,11 @@ From repo root:
    - `VITE_HOST_PORTAL_TOKEN` (must match backend `HOST_PORTAL_TOKEN`)
 3. `npm run dev`
 
+## UI preferences
+
+- Avoid explicit card-based layouts unless the user specifically asks for cards.
+- Prefer cleaner grouped sections, accordion layouts, or other lightweight containers when presenting content.
+
 ## Vercel deployment
 
 If you deploy the React frontend to Vercel, set these environment variables in the Vercel project settings:

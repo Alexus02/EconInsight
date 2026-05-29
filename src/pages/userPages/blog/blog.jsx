@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchPublishedPosts } from '../lib/fileApi'
-import '../styles/blog.css'
+import { fetchPublishedPosts } from '../../../lib/fileApi'
+import './blog.css'
 
 const Blog = () => {
   const [posts, setPosts] = useState([])

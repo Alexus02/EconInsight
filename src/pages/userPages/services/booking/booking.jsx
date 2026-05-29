@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createBooking } from '../lib/fileApi'
-import NotificationPopup from '../components/NotificationPopup'
-import '../styles/booking.css'
-import bookingHero from '../assets/consultation.jpg'
+import { createBooking } from '../../../../lib/fileApi'
+import NotificationPopup from '../../../../components/NotificationPopup'
+import './booking.css'
+import bookingHero from '../../../../assets/consultation.jpg'
 
 function formatDateTimeLocal(date) {
   const pad = (value) => String(value).padStart(2, '0')

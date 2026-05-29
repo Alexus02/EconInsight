@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import '../styles/services.css'
-import serviceImg1 from '../assets/economic-research.jpg'
-import serviceImg2 from '../assets/market-research.jpg'
-import serviceImg3 from '../assets/consultation.jpg'
-import serviceImg4 from '../assets/policy-analysis.jpg'
-import serviceImg5 from '../assets/hero-money.jpg'
-import serviceImg6 from '../assets/econInsight.jpg'
-import service_hero from '../assets/services_hero.jpg'
+import './services.css'
+import serviceImg1 from '../../../assets/economic-research.jpg'
+import serviceImg2 from '../../../assets/market-research.jpg'
+import serviceImg3 from '../../../assets/consultation.jpg'
+import serviceImg4 from '../../../assets/policy-analysis.jpg'
+import serviceImg5 from '../../../assets/hero-money.jpg'
+import serviceImg6 from '../../../assets/econInsight.jpg'
+import service_hero from '../../../assets/services_hero.jpg'
 
 
 const Services = () => {
@@ -102,6 +102,9 @@ const Services = () => {
           <p>Comprehensive economic research and consulting solutions tailored to your needs</p>
           <div className="services-hero__cta">
             <Link to="/booking" className="button button--primary services-hero__button">Book a consultation</Link>
+            <Link to="/cv" className="button button--secondary services-hero__button">
+              View CV
+            </Link>
           </div>
         </div>
         <div className="services-hero__media">

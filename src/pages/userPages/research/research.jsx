@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchPublishedPosts } from '../lib/fileApi'
-import SkeletonLoader from '../components/SkeletonLoader'
-import '../styles/library.css'
+import { fetchPublishedPosts } from '../../../lib/fileApi'
+import SkeletonLoader from '../../../components/SkeletonLoader'
+import './library.css'
 
 const Research = () => {
   const [posts, setPosts] = useState([])

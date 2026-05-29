@@ -1,14 +1,15 @@
-import Header from './components/header'
-import Footer from './components/footer'
-import Home from './pages/home'
-import About from './pages/about'
-import Research from './pages/research'
-import ResearchDetails from './pages/research-details'
+import Header from './components/userNav/header.jsx'
+import Footer from './components/userNav/footer.jsx'
+import Home from './pages/userPages/home/home.jsx'
+import About from './pages/userPages/about/about.jsx'
+import Research from './pages/userPages/research/research.jsx'
+import ResearchDetails from './pages/userPages/research/research-details'
 import Admin from './pages/admin'
-import Services from './pages/services'
-import Booking from './pages/booking'
-import Blog from './pages/blog'
-import Post from './pages/post'
+import Services from './pages/userPages/services/services.jsx'
+import Cv from './pages/userPages/services/cv/cv'
+import Booking from './pages/userPages/services/booking/booking'
+import Blog from './pages/userPages/blog/blog.jsx'
+import Post from './pages/userPages/blog/post.jsx'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import "./App.css"
 
@@ -26,6 +27,7 @@ function AppContent() {
           <Route path="/research/:id" element={<ResearchDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/cv" element={<Cv />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/posts/:id" element={<Post />} />

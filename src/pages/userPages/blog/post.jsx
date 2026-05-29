@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { fetchPublishedPostById, recordView } from '../lib/fileApi'
-import '../styles/article-viewer.css'
-import PdfActionsCard from '../components/PdfActionsCard'
-import CoverPhoto from '../components/CoverPhoto'
+import { fetchPublishedPostById, recordView } from '../../../lib/fileApi'
+import '../research/article-viewer.css'
+import PdfActionsCard from '../../../components/PdfActionsCard'
+import CoverPhoto from '../../../components/CoverPhoto'
 
 function Post() {
   const { id } = useParams()
