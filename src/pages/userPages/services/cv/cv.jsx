@@ -1,3 +1,4 @@
+import profileImage from '../../../../assets/Profile-Image-cv.jpeg'
 import './cv.css'
 
 const sections = [
@@ -323,13 +324,19 @@ const Cv = () => {
   return (
     <div className="page page--cv">
       <section className="cv-hero">
-        <p className="cv-kicker">Curriculum Vitae</p>
-        <h1>Professional profile</h1>
-        <p className="cv-lead">{summarySection && summarySection.intro}</p>
-        {summarySection && summarySection.content}
-        <div className="cv-hero__actions">
-          <a href="#accordion" className="button button--primary">Open sections</a>
-          <a href="#experience" className="button button--secondary">Jump to experience</a>
+        <div className="cv-hero__portrait">
+          <img src={profileImage} alt="Profile portrait" className="cv-hero__image" loading="lazy" decoding="async" />
+        </div>
+
+        <div className="cv-hero__copy">
+          <p className="cv-kicker">Curriculum Vitae</p>
+          <h1>Professional profile</h1>
+          <p className="cv-lead">{summarySection && summarySection.intro}</p>
+          {summarySection && summarySection.content}
+          <div className="cv-hero__actions">
+            <a href="#accordion" className="button button--primary">Open sections</a>
+            <a href="#experience" className="button button--secondary">Jump to experience</a>
+          </div>
         </div>
       </section>
 

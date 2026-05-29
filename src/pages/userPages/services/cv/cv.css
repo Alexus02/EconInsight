@@ -27,10 +27,82 @@
 
   .cv-hero {
     display: grid;
-    gap: 18px;
+    /* place copy on the left and portrait on the right */
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 320px);
+    grid-template-areas: "copy portrait";
+    gap: 24px;
     padding: 28px 0 22px;
     border-bottom: 1px solid rgba(17, 17, 17, 0.08);
     padding-bottom: 24px;
+    align-items: start;
+    position: relative;
+    overflow: visible;
+  }
+
+  .cv-hero__portrait {
+    width: 100%;
+    max-width: 240px;
+    aspect-ratio: 1 / 1.15;
+    border-radius: 24px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(140, 111, 86, 0.12), rgba(140, 111, 86, 0.04));
+    box-shadow: 0 40px 80px rgba(17, 17, 17, 0.12);
+    /* place portrait in the right grid area and overlap right */
+    grid-area: portrait;
+    justify-self: end;
+    grid-row: 1;
+    z-index: 5;
+    transform: translateX(12%);
+    border-radius: 28px;
+  }
+
+  .cv-hero__copy {
+    grid-area: copy;
+    grid-column: 1;
+  }
+
+  /* Larger overlap on wide screens, reset on smaller viewports */
+  @media (min-width: 1100px) {
+    .cv-hero {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 360px);
+    }
+
+    .cv-hero__portrait {
+      max-width: 360px;
+      transform: translateX(18%);
+      box-shadow: 0 60px 120px rgba(17,17,17,0.14);
+      border-radius: 32px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .cv-hero {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "portrait"
+        "copy";
+    }
+
+    .cv-hero__portrait {
+      transform: none;
+      justify-self: center;
+      max-width: 240px;
+      box-shadow: 0 18px 40px rgba(17, 17, 17, 0.08);
+    }
+  }
+
+  .cv-hero__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* move crop slightly down so image shows lower part */
+    object-position: center 18%;
+  }
+
+  .cv-hero__copy {
+    display: grid;
+    gap: 18px;
   }
 
   .cv-kicker {
@@ -363,6 +435,14 @@
       padding-top: 18px;
     }
 
+    .cv-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .cv-hero__portrait {
+      max-width: 180px;
+    }
+
     .experience-card {
       grid-template-columns: 1fr;
       row-gap: 8px;
@@ -396,6 +476,10 @@
 
     .cv-hero__actions {
       flex-direction: column;
+    }
+
+    .cv-hero__portrait {
+      justify-self: start;
     }
 
     .cv-accordion__summary {

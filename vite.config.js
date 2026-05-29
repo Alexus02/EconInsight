@@ -3,9 +3,11 @@ import react from '@vitejs/plugin-react'
 
 import { cloudflare } from "@cloudflare/vite-plugin";
 
+const useCloudflarePlugin = process.env.CLOUDFLARE_VITE_PLUGIN === 'true' || process.env.CF_PAGES === '1'
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), cloudflare()],
+  plugins: [react(), ...(useCloudflarePlugin ? [cloudflare()] : [])],
   server: {
     proxy: {
       '/api': {
