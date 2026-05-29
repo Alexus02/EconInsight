@@ -75,24 +75,42 @@ const sections = [
     title: 'Selected Consultancy and Advisory Assignments',
     intro: 'Commissioned work across regional and continental institutions.',
     content: (
-      <div className="timeline-list">
-        {[
-          'ILO / LEDRIZ - Technical Lead, AfCFTA and Labour (2021-2022)',
-          'UNECA / COMESA - Economics Consultant (2021)',
-          'UNITAR / Africa Union Chairperson Support Project - Senior Trade Adviser to the AU Chairperson (2021-2022)',
-          'ZimConsult / UNECA - Economics Consultant (2017)',
-          'SARDC - Economics Consultant (2017)',
-          'Crown Agents / Government of Zimbabwe / AfDB-linked programme - Industry and Trade Expert (2016)',
-          'USAID - Strategic Economic Research and Analysis (SERA) - Senior Economist / Economic Policy Adviser (2015-2016)',
-          'European Union / COMESA / Government of Zimbabwe - Industry and Trade Analysis Assignment (2004)',
-          'AU Commission / UNIDO collaboration - Chief Technical Adviser, AIDA (2018-2020)',
-          'AfCFTA Secretariat / EU Technical Assistance Facility - Senior Programme Manager and analytical lead support (2022-2023)',
-        ].map((item, index) => (
-          <article key={item} className="timeline-item">
-            <span className="timeline-item__index">{String(index + 1).padStart(2, '0')}</span>
-            <p>{item}</p>
-          </article>
-        ))}
+      <div className="publications-table consultancy-table">
+        {(() => {
+          const consultancies = [
+            { period: '2022 - 2023', assignment: 'AfCFTA Secretariat / EU Technical Assistance Facility', role: 'Senior Programme Manager and analytical lead support' },
+            { period: '2021 - 2022', assignment: 'ILO / LEDRIZ', role: 'Technical Lead, AfCFTA and Labour' },
+            { period: '2021 - 2022', assignment: 'UNITAR / Africa Union Chairperson Support Project', role: 'Senior Trade Adviser to the AU Chairperson' },
+            { period: '2021', assignment: 'UNECA / COMESA', role: 'Economics Consultant' },
+            { period: '2018 - 2020', assignment: 'AU Commission / UNIDO collaboration', role: 'Chief Technical Adviser, AIDA' },
+            { period: '2017', assignment: 'ZimConsult / UNECA', role: 'Economics Consultant' },
+            { period: '2017', assignment: 'SARDC', role: 'Economics Consultant' },
+            { period: '2016', assignment: 'Crown Agents / Government of Zimbabwe / AfDB-linked programme', role: 'Industry and Trade Expert' },
+            { period: '2015 - 2016', assignment: 'USAID / Strategic Economic Research and Analysis (SERA)', role: 'Senior Economist / Economic Policy Adviser' },
+            { period: '2004', assignment: 'European Union / COMESA / Government of Zimbabwe', role: 'Industry and Trade Analysis Assignment' },
+          ]
+
+          return (
+            <table>
+              <thead className="visually-hidden">
+                <tr>
+                  <th>Period</th>
+                  <th>Assignment</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {consultancies.map((item, index) => (
+                  <tr key={item.period + '-' + index}>
+                    <td className="pub-year">{item.period}</td>
+                    <td className="pub-desc">{item.assignment}</td>
+                    <td className="pub-agency">{item.role}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        })()}
       </div>
     ),
   },
@@ -300,16 +318,15 @@ const CvSection = ({ section, defaultOpen = false }) => (
 )
 
 const Cv = () => {
+  const summarySection = sections.find(s => s.id === 'summary')
+
   return (
     <div className="page page--cv">
       <section className="cv-hero">
         <p className="cv-kicker">Curriculum Vitae</p>
         <h1>Professional profile</h1>
-        <p className="cv-lead">
-          Economist and Africa-focused political economy analyst with over 28 years of experience in economic
-          intelligence gathering, macroeconomic and policy analysis, trade and industrial policy, and strategic
-          advisory work across national, regional, and continental institutions in Africa.
-        </p>
+        <p className="cv-lead">{summarySection && summarySection.intro}</p>
+        {summarySection && summarySection.content}
         <div className="cv-hero__actions">
           <a href="#accordion" className="button button--primary">Open sections</a>
           <a href="#experience" className="button button--secondary">Jump to experience</a>
@@ -317,7 +334,7 @@ const Cv = () => {
       </section>
 
       <section className="cv-accordion-list" id="accordion">
-        {sections.map((section, index) => (
+        {sections.filter(sec => sec.id !== 'summary').map((section) => (
           <CvSection key={section.id} section={section} />
         ))}
       </section>

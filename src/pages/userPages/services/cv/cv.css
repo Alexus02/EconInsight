@@ -94,6 +94,26 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
+  /* Core competencies: add a colored left border per tag */
+  .tag-grid .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    padding-left: 12px;
+    gap: 8px;
+    border-left: 4px solid transparent;
+    margin-left: 2px;
+  }
+
+  .tag-grid .tag-chip:nth-child(8n+1) { border-left-color: #8c6f56; }
+  .tag-grid .tag-chip:nth-child(8n+2) { border-left-color: #6f5d4d; }
+  .tag-grid .tag-chip:nth-child(8n+3) { border-left-color: #2a7fb0; }
+  .tag-grid .tag-chip:nth-child(8n+4) { border-left-color: #4a9e4a; }
+  .tag-grid .tag-chip:nth-child(8n+5) { border-left-color: #b35b3b; }
+  .tag-grid .tag-chip:nth-child(8n+6) { border-left-color: #9a5fb3; }
+  .tag-grid .tag-chip:nth-child(8n+7) { border-left-color: #d6a51d; }
+  .tag-grid .tag-chip:nth-child(8n+8) { border-left-color: #4b5563; }
+
   .cv-accordion-list {
     display: grid;
     gap: 14px;
@@ -182,6 +202,36 @@
   .stack-card--soft {
     background: transparent;
   }
+
+  /* Key Milestones: grid layout with left accent borders (no cards) */
+  .stack-cards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .stack-cards .stack-card {
+    padding: 12px 14px;
+    border-left: 4px solid transparent;
+    margin: 0;
+    background: transparent;
+    width: 100%;
+    display: block;
+  }
+
+  .stack-cards .stack-card p {
+    margin: 0;
+    color: #56524d;
+    line-height: 1.6;
+  }
+
+  .stack-cards .stack-card:nth-child(8n+1) { border-left-color: #8c6f56; }
+  .stack-cards .stack-card:nth-child(8n+2) { border-left-color: #6f5d4d; }
+  .stack-cards .stack-card:nth-child(8n+3) { border-left-color: #2a7fb0; }
+  .stack-cards .stack-card:nth-child(8n+4) { border-left-color: #4a9e4a; }
+  .stack-cards .stack-card:nth-child(8n+5) { border-left-color: #b35b3b; }
+  .stack-cards .stack-card:nth-child(8n+6) { border-left-color: #9a5fb3; }
+  .stack-cards .stack-card:nth-child(8n+7) { border-left-color: #d6a51d; }
+  .stack-cards .stack-card:nth-child(8n+8) { border-left-color: #4b5563; }
 
   .experience-grid {
     gap: 0;
@@ -356,7 +406,8 @@
   /* Publications table (no borders/underlines) */
   .publications-table table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0 10px;
     margin: 0;
   }
 
@@ -377,7 +428,9 @@
 
   .publications-table .pub-desc {
     color: #111111;
-    padding: 10px 20px;
+    padding: 10px 28px;
+    border-left: 2px solid rgba(17, 17, 17, 0.08);
+    border-right: 2px solid rgba(17, 17, 17, 0.08);
   }
 
   .publications-table .pub-agency {
@@ -385,6 +438,27 @@
     color: #6d675f;
     font-weight: 600;
     text-align: left;
+    padding-left: 12px;
+  }
+
+  .consultancy-table .pub-year {
+    width: 130px;
+  }
+
+  .consultancy-table table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+
+  .consultancy-table .pub-agency {
+    width: 240px;
+    padding-left: 12px;
+  }
+
+  .consultancy-table .pub-desc {
+    padding: 8px 32px;
+    border-left: 2px solid rgba(17, 17, 17, 0.18);
+    border-right: 2px solid rgba(17, 17, 17, 0.18);
   }
 
   .visually-hidden {
@@ -416,5 +490,12 @@
 
     .publications-table tr {
       padding: 12px 0;
+    }
+
+    .publications-table .pub-desc {
+      border-left: none;
+      border-right: none;
+      padding-left: 0;
+      padding-right: 0;
     }
   }
