@@ -39,6 +39,18 @@
     font-size: 0.78rem;
     color: #86684f;
   }
+  .country-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 4px;
+    margin-top: 6px;
+    padding-left: 18px;
+    list-style: disc;
+  }
+
+  .country-list li::marker {
+    color: #8c6f56;
+  }
 
   .cv-hero h1,
   .cv-accordion__summary strong {
@@ -165,7 +177,6 @@
   .experience-card,
   .detail-list p {
     padding: 0;
-    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
   }
 
   .stack-card--soft {
@@ -213,13 +224,49 @@
 
   .cv-section--split {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+  }
+
+  .cv-credentials-footer {
+    display: grid;
+    gap: 10px;
+    padding-top: 12px;
   }
 
   .detail-list {
     display: grid;
     gap: 12px;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-list.detail-list--two-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+  }
+
+  .detail-list.detail-list--two-column > p {
+    padding-left: 14px;
+    border-left: 4px solid transparent;
+  }
+
+  .detail-list.detail-list--two-column > p:nth-child(1),
+  .detail-list.detail-list--two-column > p:nth-child(2),
+  .detail-list.detail-list--two-column > p:nth-child(3),
+  .detail-list.detail-list--two-column > p:nth-child(4) {
+    border-left-color: #8c6f56;
+  }
+
+  .detail-list.detail-list--two-column > p:nth-child(5) {
+    border-left-color: #4a6fa5;
+  }
+
+  .detail-list.detail-list--two-column > p:nth-child(6) {
+    border-left-color: #c42026;
+  }
+
+  .detail-list.detail-list--two-column > p:nth-child(7) {
+    border-left-color: #4f6d5f;
   }
 
   .detail-list p {
@@ -241,15 +288,17 @@
 
   /* no extra footer panel; the page ends with the accordion list */
 
-  @media (max-width: 900px) {
-    .cv-section--split {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 640px) {
     .page--cv {
       padding-top: 18px;
+    }
+
+    .detail-list.detail-list--two-column {
+      grid-template-columns: 1fr;
+    }
+
+    .detail-list.detail-list--two-column > p {
+      padding-left: 14px;
     }
 
     .cv-hero,

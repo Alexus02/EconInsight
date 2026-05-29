@@ -190,23 +190,26 @@ const sections = [
     intro: 'Academic background, languages, membership, and technical skills.',
     content: (
       <div className="cv-section--split">
-        <article>
-          <div className="detail-list">
-            <p><strong>Master of Arts in Development Economics</strong><span>Williams College, USA | 1994 - 1995 | Cum Laude</span></p>
-            <p><strong>Diploma in Investment Analysis and Portfolio Management</strong><span>University of South Africa | 2002 - 2003</span></p>
-            <p><strong>Advanced Course on Aspects of Fiscal Reform</strong><span>International Monetary Fund / ESAIRDM, Zimbabwe | 1993</span></p>
-            <p><strong>Bachelor of Science (Honours) in Economics</strong><span>University of Zimbabwe | 1989 - 1991</span></p>
-          </div>
-        </article>
+        <div className="detail-list detail-list--two-column">
+          <p><strong>Master of Arts in Development Economics</strong><span>Williams College, USA | 1994 - 1995 | Cum Laude</span></p>
+          <p><strong>Diploma in Investment Analysis and Portfolio Management</strong><span>University of South Africa | 2002 - 2003</span></p>
+          <p><strong>Advanced Course on Aspects of Fiscal Reform</strong><span>International Monetary Fund / ESAIRDM, Zimbabwe | 1993</span></p>
+          <p><strong>Bachelor of Science (Honours) in Economics</strong><span>University of Zimbabwe | 1989 - 1991</span></p>
+          <p><strong>Languages</strong><span>English fluent; Shona native / fluent</span></p>
+          <p><strong>Professional membership</strong><span>Zimbabwe Economics Society</span></p>
+          <p><strong>Technical skills</strong><span>Windows, Excel, PowerPoint, SPSS, research and policy analysis, economic reporting, stakeholder briefings</span></p>
+        </div>
 
-        <article>
-          <div className="detail-list">
-            <p><strong>Languages</strong><span>English fluent; Shona native / fluent</span></p>
-            <p><strong>Professional membership</strong><span>Zimbabwe Economics Society</span></p>
-            <p><strong>Technical skills</strong><span>Windows, Excel, PowerPoint, SPSS, research and policy analysis, economic reporting, stakeholder briefings</span></p>
-            <p><strong>Country and regional exposure</strong><span>Zimbabwe, Ghana, Ethiopia, Nigeria, Sierra Leone, Zambia, Kenya, Tanzania, Uganda, DRC, Congo Brazzaville, Senegal, Mali, Gabon, Niger, Cameroon, Liberia, Morocco, South Africa, Namibia, Eswatini, Guinea-Bissau, Guinea-Conakry, and broader SADC, COMESA, EAC, ECOWAS, IGAD, ECCAS, UMA and CEN-SAD exposure</span></p>
-          </div>
-        </article>
+        <footer className="cv-credentials-footer">
+          <strong>Country and regional exposure</strong>
+          <ul className="country-list">
+            {[
+              'Zimbabwe', 'Ghana', 'Ethiopia', 'Nigeria', 'Sierra Leone', 'Zambia', 'Kenya', 'Tanzania', 'Uganda', 'DRC', 'Congo Brazzaville', 'Senegal', 'Mali', 'Gabon', 'Niger', 'Cameroon', 'Liberia', 'Morocco', 'South Africa', 'Namibia', 'Eswatini', 'Guinea-Bissau', 'Guinea-Conakry', 'COMESA', 'EAC', 'ECOWAS', 'IGAD', 'ECCAS', 'UMA', 'CEN-SAD'
+            ].map((country, index) => (
+              <li key={index}>{country}</li>
+            ))}
+          </ul>
+        </footer>
       </div>
     ),
   },
