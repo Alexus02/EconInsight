@@ -215,23 +215,43 @@ const sections = [
     title: 'Selected Publications',
     intro: 'Research and policy output across integration, trade, industrialisation, and reform work.',
     content: (
-      <div className="stack-cards">
-        {[
-          '2021: Assess the feasibility of establishing and managing a common Agro-industrial park between Zambia and Zimbabwe (CAIP) - UNECA and COMESA.',
-          '2019: Status on the Implementation of the SADC Integration: Papers on Trade & Market Integration, and on Industrialization - SARDC.',
-          '2017: Integration in Southern Africa: The Role, Prospects and Progress of the EAC-COMESA-SADC Tripartite Agreement - UNECA.',
-          '2017: Promoting Growth and Economic Transformation in Southern Africa: The Challenges and Implications for Declining Commodity Prices - UNECA.',
-          '2015: Prospects for Industrial Transformation in SADC: Towards a Regional Industrialisation Roadmap - SARDC.',
-          '2016: Development of the Zimbabwe Regional Integration Strategic Framework (RISF) - Crown Agents / AfDB-linked programme.',
-          '2013: Industrialization for Economic Transformation and Sustainable Development in Southern Africa: Addressing the Gaps - UNECA.',
-          '2012: Tripartite Free Trade Area Industrial Pillar Baseline Study and complimentary business factors affecting industrial development.',
-          '2004: Assessment of Zimbabwe’s compliance to the COMESA Common Investment Area Framework.',
-          '2004: Impact Assessment of the COMESA Common External Tariff for Zimbabwe.',
-        ].map((item) => (
-          <article key={item} className="stack-card stack-card--soft">
-            <p>{item}</p>
-          </article>
-        ))}
+      <div className="publications-table">
+        {(() => {
+          const pubs = [
+            { year: '2004', desc: 'Assessment of Zimbabwe’s compliance to the COMESA Common Investment Area Framework', agency: 'COMESA' },
+            { year: '2004', desc: 'Impact Assessment of the COMESA Common External Tariff for Zimbabwe', agency: 'COMESA' },
+            { year: '2012', desc: 'Tripartite Free Trade Area Industrial Pillar Baseline Study and complimentary business factors affecting industrial development', agency: '' },
+            { year: '2013', desc: 'Industrialization for Economic Transformation and Sustainable Development in Southern Africa: Addressing the Gaps', agency: 'UNECA' },
+            { year: '2016', desc: 'Development of the Zimbabwe Regional Integration Strategic Framework (RISF)', agency: 'Crown Agents / AfDB-linked programme' },
+            { year: '2015', desc: 'Prospects for Industrial Transformation in SADC: Towards a Regional Industrialisation Roadmap', agency: 'SARDC' },
+            { year: '2017', desc: 'Integration in Southern Africa: The Role, Prospects and Progress of the EAC-COMESA-SADC Tripartite Agreement', agency: 'UNECA' },
+            { year: '2017', desc: 'Promoting Growth and Economic Transformation in Southern Africa: The Challenges and Implications for Declining Commodity Prices', agency: 'UNECA' },
+            { year: '2019', desc: 'Status on the Implementation of the SADC Integration: Papers on Trade & Market Integration, and on Industrialization', agency: 'SARDC' },
+            { year: '2021', desc: 'Assess the feasibility of establishing and managing a common Agro-industrial park between Zambia and Zimbabwe (CAIP)', agency: 'UNECA and COMESA' },
+
+          ]
+
+          return (
+            <table>
+              <thead className="visually-hidden">
+                <tr>
+                  <th>Year</th>
+                  <th>Description</th>
+                  <th>Agency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pubs.map((p, i) => (
+                  <tr key={p.year + '-' + i}>
+                    <td className="pub-year">{p.year}</td>
+                    <td className="pub-desc">{p.desc}</td>
+                    <td className="pub-agency">{p.agency}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        })()}
       </div>
     ),
   },
