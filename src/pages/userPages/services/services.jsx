@@ -103,8 +103,8 @@ const Services = () => {
           <div className="services-hero__cta">
             <Link to="/booking" className="button button--primary services-hero__button">Book a consultation</Link>
             <Link to="/cv" className="button button--secondary services-hero__button">
-              View CV
-            </Link>
+                View Profile
+              </Link>
           </div>
         </div>
         <div className="services-hero__media">
@@ -147,8 +147,11 @@ const Services = () => {
 
       <section className="service-process">
         <div className="section-header">
-          <h2>How We Work</h2>
-          <p>Our proven approach to delivering economic insights and recommendations</p>
+          <div className="section-header__copy">
+            <h2>How We Work</h2>
+            <p>Our proven approach to delivering economic insights and recommendations</p>
+          </div>
+          <Link to="/cv" className="button button--secondary section-header__button">View Profile</Link>
         </div>
 
         <div className="process-steps">

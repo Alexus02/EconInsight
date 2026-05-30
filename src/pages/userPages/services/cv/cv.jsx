@@ -1,6 +1,50 @@
 import profileImage from '../../../../assets/Profile-Image-cv.jpeg'
 import './cv.css'
 
+// return a small inline SVG icon based on the URL (youtube, facebook, news, generic)
+const getPlatformIcon = (url) => {
+  if (!url) return null
+  const u = url.toLowerCase()
+  if (u.includes('youtu') || u.includes('youtube')) {
+    return (
+      <svg className="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="2" y="5" width="20" height="14" rx="3" fill="#FF0000" />
+        <polygon points="10,8 16,12 10,16" fill="#fff" />
+      </svg>
+    )
+  }
+
+  if (u.includes('facebook.com')) {
+    return (
+      <svg className="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="2" y="2" width="20" height="20" rx="3" fill="#1877F2" />
+        <path d="M15 8.5h-1.4c-.6 0-.7.3-.7.7V10h2.1l-.3 2H12.9v6h-2.1v-6H9.8v-2h1.1V9.6c0-1.2.7-1.9 1.8-1.9H15v1.8z" fill="#fff" />
+      </svg>
+    )
+  }
+
+  // news / article sites
+  if (u.includes('news') || u.includes('sardc') || u.includes('hdl.handle.net') || u.includes('africannewspage')) {
+    return (
+      <svg className="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="4" width="14" height="16" rx="1" fill="#6f5d4d" />
+        <rect x="8" y="6" width="8" height="3" fill="#fff" />
+        <rect x="8" y="10" width="10" height="2" fill="#fff" />
+        <rect x="8" y="13" width="6" height="2" fill="#fff" />
+        <circle cx="19" cy="7" r="2" fill="#6f5d4d" />
+      </svg>
+    )
+  }
+
+  // fallback generic link icon
+  return (
+    <svg className="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M3.9 12a5 5 0 0 1 0-7.1l2.8-2.8a5 5 0 0 1 7.1 0l1.4 1.4" fill="none" stroke="#6f5d4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20.1 12a5 5 0 0 1 0 7.1l-2.8 2.8a5 5 0 0 1-7.1 0l-1.4-1.4" fill="none" stroke="#6f5d4d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 const sections = [
   {
     id: 'summary',
@@ -243,13 +287,13 @@ const sections = [
             { year: '2004', desc: 'Assessment of Zimbabwe’s compliance to the COMESA Common Investment Area Framework', agency: 'COMESA' },
             { year: '2004', desc: 'Impact Assessment of the COMESA Common External Tariff for Zimbabwe', agency: 'COMESA' },
             { year: '2012', desc: 'Tripartite Free Trade Area Industrial Pillar Baseline Study and complimentary business factors affecting industrial development', agency: '' },
-            { year: '2013', desc: 'Industrialization for Economic Transformation and Sustainable Development in Southern Africa: Addressing the Gaps', agency: 'UNECA' },
+            { year: '2013', desc: 'Industrialization for Economic Transformation and Sustainable Development in Southern Africa: Addressing the Gaps', agency: 'UNECA', url: 'https://hdl.handle.net/10855/22748' },
             { year: '2016', desc: 'Development of the Zimbabwe Regional Integration Strategic Framework (RISF)', agency: 'Crown Agents / AfDB-linked programme' },
-            { year: '2015', desc: 'Prospects for Industrial Transformation in SADC: Towards a Regional Industrialisation Roadmap', agency: 'SARDC' },
-            { year: '2017', desc: 'Integration in Southern Africa: The Role, Prospects and Progress of the EAC-COMESA-SADC Tripartite Agreement', agency: 'UNECA' },
-            { year: '2017', desc: 'Promoting Growth and Economic Transformation in Southern Africa: The Challenges and Implications for Declining Commodity Prices', agency: 'UNECA' },
-            { year: '2019', desc: 'Status on the Implementation of the SADC Integration: Papers on Trade & Market Integration, and on Industrialization', agency: 'SARDC' },
-            { year: '2021', desc: 'Assess the feasibility of establishing and managing a common Agro-industrial park between Zambia and Zimbabwe (CAIP)', agency: 'UNECA and COMESA' },
+            { year: '2015', desc: 'Prospects for Industrial Transformation in SADC: Towards a Regional Industrialisation Roadmap', agency: 'SARDC', url: 'https://www.sardc.net/books/industrial_policy_briefs/Industrialisation_report.pdf' },
+            { year: '2017', desc: 'Integration in Southern Africa: The Role, Prospects and Progress of the EAC-COMESA-SADC Tripartite Agreement', agency: 'UNECA', url: 'https://hdl.handle.net/10855/43681' },
+            { year: '2017', desc: 'Promoting Growth and Economic Transformation in Southern Africa: The Challenges and Implications for Declining Commodity Prices', agency: 'UNECA', url: 'https://hdl.handle.net/10855/43722' },
+            { year: '2019', desc: 'Status on the Implementation of the SADC Integration: Papers on Trade & Market Integration, and on Industrialization', agency: 'SARDC', url: 'https://www.sardc.net/books/industrial_policy_briefs/Industrialisation_report.pdf' },
+            { year: '2021', desc: 'Assess the feasibility of establishing and managing a common Agro-industrial park between Zambia and Zimbabwe (CAIP)', agency: 'UNECA and COMESA', url: 'https://hdl.handle.net/10855/43681' },
 
           ]
 
@@ -266,7 +310,16 @@ const sections = [
                 {pubs.map((p, i) => (
                   <tr key={p.year + '-' + i}>
                     <td className="pub-year">{p.year}</td>
-                    <td className="pub-desc">{p.desc}</td>
+                    <td className="pub-desc">
+                      {p.url ? (
+                        <a href={p.url} target="_blank" rel="noopener noreferrer">
+                          {p.desc}
+                          <span className="visually-hidden"> (opens in new tab)</span>
+                        </a>
+                      ) : (
+                        p.desc
+                      )}
+                    </td>
                     <td className="pub-agency">{p.agency}</td>
                   </tr>
                 ))}
@@ -284,17 +337,21 @@ const sections = [
     content: (
       <div className="tag-grid">
         {[
-          'Africa’s free trade on track, more efforts needed: Rongai Chizema',
-          'Talking African Industrialization: Pan Africa Parliament',
-          'Zim ready to ride on AfCFTA opportunities: Rongai Chizema',
-          'Industrialisation: Africa’s only Saviour: Rongai Chizema',
-          'SABC 3 News Report on the 2019 Manufacturing Indaba, Sandton South Africa',
-          'Border Closure to Stabilize Nigeria’s Economy for Africa’s Industrialization',
-          'Towards harmonized AU-RECs industrial policies for Africa’s economic integration',
-          'LA PRESSE PANAFRICAINE SENSIBILISÉE SUR L’INDUSTRIALISATION',
-        ].map((item) => (
-          <span key={item} className="tag-chip tag-chip--muted">
-            {item}
+          { text: 'Africa’s free trade on track, more efforts needed: Rongai Chizema', url: 'https://youtu.be/7HxfQHdvNU8' },
+          { text: 'Talking African Industrialization: Pan Africa Parliament', url: 'https://www.facebook.com/panafricanparliament/videos/511710442936093/' },
+          { text: 'Zim ready to ride on AfCFTA opportunities: Rongai Chizema', url: 'https://www.newsday.co.zw/2019/10/zim-ready-to-ride-on-afcfta-opportunities/' },
+          { text: 'Industrialisation: Africa’s only Saviour: Rongai Chizema', url: 'https://www.newsday.co.zw/2019/10/industrialisation-africas-only-saviour/' },
+          { text: 'SABC 3 News Report on the 2019 Manufacturing Indaba, Sandton South Africa', url: 'https://youtu.be/LN-b-cn9eu4' },
+          { text: 'Border Closure to Stabilize Nigeria’s Economy for Africa’s Industrialization', url: 'https://youtu.be/AG4BMdUK3h4' },
+          { text: 'Towards harmonized AU-RECs industrial policies for Africa’s economic integration', url: 'https://www.africannewspage.net/2019/10/towards-harmonized-au-recs-industrial-policies-for-africas-economic-integration/' },
+          { text: 'LA PRESSE PANAFRICAINE SENSIBILISÉE SUR L’INDUSTRIALISATION', url: 'https://www.youtube.com/watch?v=IPb7JYvXfLw' },
+          ].map((item) => (
+          <span key={item.text} className="tag-chip tag-chip--muted">
+            <a className="no-icon" href={item.url} target="_blank" rel="noopener noreferrer">
+              {getPlatformIcon(item.url)}
+              <span>{item.text}</span>
+              <span className="visually-hidden"> (opens in new tab)</span>
+            </a>
           </span>
         ))}
       </div>
@@ -329,7 +386,7 @@ const Cv = () => {
         </div>
 
         <div className="cv-hero__copy">
-          <p className="cv-kicker">Curriculum Vitae</p>
+         
           <h1>Professional profile</h1>
           <p className="cv-lead">{summarySection && summarySection.intro}</p>
           {summarySection && summarySection.content}

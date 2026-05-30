@@ -553,6 +553,71 @@
     white-space: nowrap;
   }
 
+  /* External link styling: no underline, small external arrow glyph */
+  a[target="_blank"] {
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    transition: color .15s ease, box-shadow .15s ease;
+  }
+
+  a[target="_blank"]::after {
+    content: '';
+    display: inline-block;
+    width: 1.25em;
+    height: 1.25em;
+    margin-left: 0.45rem;
+    vertical-align: text-top;
+    opacity: 0.95;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236f5d4d'><path d='M2 2 L18 10 L13 13 L15 18 L11 14 L8 20 L6 13 L2 2 Z'/></svg>");
+  }
+
+  /* suppress icon for links that explicitly opt out (e.g., social tags) */
+  a.no-icon::after,
+  a.no-icon[target="_blank"]::after,
+  .tag-chip a.no-icon::after {
+    display: none !important;
+    content: none !important;
+    background-image: none !important;
+    width: auto !important;
+    height: auto !important;
+    margin-left: 0 !important;
+  }
+
+  /* ensure no pointer/icon appears for any links inside the media/tag grid */
+  .tag-grid a::after,
+  .tag-chip a::after,
+  .tag-grid a[target="_blank"]::after {
+    display: none !important;
+    content: none !important;
+    background-image: none !important;
+    width: auto !important;
+    height: auto !important;
+    margin-left: 0 !important;
+  }
+
+  /* inline social icons */
+  .social-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.15rem;
+    flex: 0 0 auto;
+  }
+
+  a[target="_blank"]:hover {
+    color: #8c6f56;
+    text-decoration: none;
+    box-shadow: inset 0 -3px 0 #8c6f56;
+  }
+
+  a[target="_blank"]:focus {
+    outline: 3px solid rgba(140,111,86,0.16);
+    outline-offset: 3px;
+  }
+
   @media (max-width: 640px) {
     .publications-table table,
     .publications-table thead,

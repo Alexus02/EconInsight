@@ -114,6 +114,9 @@ const About = () => {
             <Link to="/services" className="button button--secondary">
               Explore services
             </Link>
+            <Link to="/cv" className="button button--secondary">
+              View Profile
+            </Link>
           </div>
           <div className="stats-grid">
             <article>
@@ -160,6 +163,7 @@ const About = () => {
 
 
       <section className="about-section contact-section" id="contact">
+        <div>
         <div className="section-heading">
           <p className="eyebrow">Get In Touch</p>
           <h2>Start a conversation with EconInsight</h2>
@@ -218,6 +222,7 @@ const About = () => {
           </form>
 
           
+        </div>
         </div>
       </section>
     </div>

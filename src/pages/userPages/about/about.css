@@ -197,12 +197,22 @@
 
 .contact-section {
   padding-top: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* wrapper added in JSX: constrain and center it so inner content keeps previous width */
+.contact-section > div {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
 .contact-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 760px);
+  display: flex;
   justify-content: center;
+  width: 100%;
   gap: 20px;
 }
 
@@ -211,6 +221,8 @@
   display: grid;
   gap: 16px;
   width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .contact-form label {
@@ -253,6 +265,7 @@
   .hero,
   .about-section--split,
   .contact-layout {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
