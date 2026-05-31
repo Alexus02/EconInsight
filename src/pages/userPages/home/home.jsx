@@ -51,6 +51,7 @@ const Home = () => {
           <div className="hero__actions">
             <Link to="/research" className="button button--primary">Explore Research</Link>
             <Link to="/services" className="button button--secondary">Our Services</Link>
+            <Link to="/cv" className="button button--secondary button--profile">View Profile</Link>
           </div>
         </div>
         <div className="hero__media">

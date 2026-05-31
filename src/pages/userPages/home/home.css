@@ -57,6 +57,19 @@
   border-radius: 12px 0 12px 0;
 }
 
+.hero__actions .button--profile {
+  background: linear-gradient(135deg, #c28b5a 0%, #a66f3d 100%);
+  color: #ffffff;
+  border-color: rgba(166, 111, 61, 0.18);
+}
+
+.hero__actions .button--profile:hover {
+  background: linear-gradient(135deg, #b67745 0%, #8f5a2f 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(166, 111, 61, 0.24);
+  transform: translateY(-2px);
+}
+
 
 
 .placeholder-large {
