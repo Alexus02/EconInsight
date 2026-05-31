@@ -173,7 +173,7 @@ function FileUpload({
                 {file?.type === 'application/pdf' ? (
                   <PDFPreview title={file.name} url={previewUrl} className="upload-preview__pdf" />
                 ) : file && file.type.startsWith('image/') ? (
-                  <img src={previewUrl} alt={file.name} className="upload-preview__image" />
+                  <img src={previewUrl} alt={file.name} className="upload-preview__image" loading="lazy" decoding="async" />
                 ) : (
                   <div className="upload-preview__fallback">
                     <p>{file?.name}</p>

@@ -53,7 +53,7 @@ const Home = () => {
           </div>
         </div>
         <div className="hero__media">
-          <img src={heroImage} alt="EconInsight" className="hero__image" />
+          <img src={heroImage} alt="EconInsight" className="hero__image" loading="lazy" decoding="async" />
         </div>
       </section>
 
@@ -109,7 +109,7 @@ const Home = () => {
  
       <section className="why-choose-us">
         <div className="why-choose-us__media">
-          <img src={secondaryImage} alt="Why Choose EconInsight" className="why-choose-us__image" />
+          <img src={secondaryImage} alt="Why Choose EconInsight" className="why-choose-us__image" loading="lazy" decoding="async" />
         </div>
         <div className="why-choose-us__content">
           <h2>Why Choose EconInsight</h2>
@@ -132,7 +132,7 @@ const Home = () => {
         <div className="services-preview-grid">
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg1} alt="Economic Research" className='home-service-card__image'/>
+              <img src={serviceImg1} alt="Economic Research" className='home-service-card__image' loading="lazy" decoding="async" />
             </div>
             <div className='home-service-card__description'>
             <h3>Economic Research</h3>
@@ -141,7 +141,7 @@ const Home = () => {
                     </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg2} alt="Market Intelligence" className='home-service-card__image'/>
+              <img src={serviceImg2} alt="Market Intelligence" className='home-service-card__image' loading="lazy" decoding="async" />
             </div>
             <div className='home-service-card__description'>
             <h3>Market Intelligence</h3>
@@ -150,7 +150,7 @@ const Home = () => {
           </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-                  <img src={serviceImg3} alt="Policy Analysis" className='home-service-card__image'/>
+              <img src={serviceImg3} alt="Policy Analysis" className='home-service-card__image' loading="lazy" decoding="async" />
                 </div>
             <div className='home-service-card__description'>
             <h3>Policy Analysis</h3>
@@ -159,7 +159,7 @@ const Home = () => {
           </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg4} alt="Strategic Consulting" className='home-service-card__image' />
+              <img src={serviceImg4} alt="Strategic Consulting" className='home-service-card__image' loading="lazy" decoding="async" />
             </div>
             <div className='home-service-card__description'>
             <h3>Strategic Consulting</h3>

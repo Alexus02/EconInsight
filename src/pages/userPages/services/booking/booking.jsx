@@ -117,7 +117,7 @@ function Booking() {
         </div>
 
         <div className="booking-hero__media">
-          <img src={bookingHero} alt="Consultation planning" className="booking-hero__image" />
+          <img src={bookingHero} alt="Consultation planning" className="booking-hero__image" loading="lazy" decoding="async" />
         </div>
       </section>
 

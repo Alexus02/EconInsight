@@ -360,7 +360,7 @@ const sections = [
 ]
 
 const CvSection = ({ section, defaultOpen = false }) => (
-  <details className="cv-accordion" open={defaultOpen}>
+  <details className="cv-accordion" id={section.id} open={defaultOpen}>
     <summary className="cv-accordion__summary">
       <span>
         <span className="cv-accordion__kicker">{section.id}</span>

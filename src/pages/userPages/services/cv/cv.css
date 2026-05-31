@@ -435,6 +435,10 @@
       padding-top: 18px;
     }
 
+    .cv-accordion {
+      scroll-margin-top: 110px;
+    }
+
     .cv-hero {
       grid-template-columns: 1fr;
     }

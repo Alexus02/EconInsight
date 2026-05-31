@@ -63,6 +63,8 @@ export default function CoverPhoto({ src, alt, className = '' }) {
         src={src}
         alt={alt || 'Cover image'}
         className={`cover-img ${loading ? 'cover-img--loading' : 'cover-img--loaded'}`}
+        loading="lazy"
+        decoding="async"
         onLoad={handleLoad}
         onError={handleError}
       />

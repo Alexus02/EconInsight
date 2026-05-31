@@ -216,6 +216,11 @@
   gap: 20px;
 }
 
+.contact-section .section-heading {
+  justify-items: center;
+  text-align: center;
+}
+
 .contact-form {
   padding: 24px;
   display: grid;

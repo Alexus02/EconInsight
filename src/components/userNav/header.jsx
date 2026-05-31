@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './header.css'
+import logo from '../../assets/econinsight_logo_v2.svg'
 
 const Header = () => {
   const [showMenu, setShowMenu] = useState(false)
@@ -12,7 +13,11 @@ const Header = () => {
   return (
     <header className="site-header">
       <Link to="/" className="site-brand" aria-label="EconInsight home">
-        EconInsight
+        <img
+          src={logo}
+          alt="EconInsight"
+          style={{ display: 'block', height: 'clamp(30px, 5vw, 40px)', width: 'auto' }}
+        />
       </Link>
       <button
         type="button"

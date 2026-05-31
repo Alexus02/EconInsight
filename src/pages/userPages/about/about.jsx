@@ -135,7 +135,7 @@ const About = () => {
         </div>
 
         <div className="hero__visual hero__visual--portrait" aria-label="Team portrait placeholder">
-          <img src={aboutHero} alt="Hero image" className='about-hero'/>
+          <img src={aboutHero} alt="Hero image" className='about-hero' loading="lazy" decoding="async" />
         </div>
       </section>
 

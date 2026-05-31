@@ -108,7 +108,7 @@ const Services = () => {
           </div>
         </div>
         <div className="services-hero__media">
-      <img src={service_hero} alt="Services Hero" className='services-hero__image' />
+      <img src={service_hero} alt="Services Hero" className='services-hero__image' loading="lazy" decoding="async" />
         </div>
       </section>
 
@@ -121,7 +121,7 @@ const Services = () => {
               onClick={() => setSelectedService(selectedService?.id === service.id ? null : service)}
             >
               <div className="services-service-card__icon">
-                <img src={service.image} alt={service.title} className="services-service-card__image" />
+                <img src={service.image} alt={service.title} className="services-service-card__image" loading="lazy" decoding="async" />
               </div>
               <h3>{service.title}</h3>
               <div className="services-service-card__description">
