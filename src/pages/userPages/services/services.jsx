@@ -103,7 +103,7 @@ const Services = () => {
           <p>Comprehensive economic research and consulting solutions tailored to your needs</p>
           <div className="services-hero__cta">
             <Link to="/booking" className="button button--primary services-hero__button">Book a consultation</Link>
-            <Link to="/cv" className="button button--secondary services-hero__button">
+            <Link to="/cv" className="button button--secondary services-hero__button button--profile">
                 View Profile
               </Link>
           </div>
@@ -152,7 +152,7 @@ const Services = () => {
             <h2>How We Work</h2>
             <p>Our proven approach to delivering economic insights and recommendations</p>
           </div>
-          <Link to="/cv" className="button button--secondary section-header__button">View Profile</Link>
+          <Link to="/cv" className="button button--secondary section-header__button button--profile">View Profile</Link>
         </div>
 
         <div className="process-steps">

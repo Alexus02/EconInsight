@@ -59,6 +59,23 @@
   color: #ffffff;
 }
 
+.services-hero__button.button--profile,
+.section-header__button.button--profile {
+  background: linear-gradient(135deg, #c28b5a 0%, #a66f3d 100%);
+  color: #ffffff;
+  border-color: rgba(166, 111, 61, 0.18);
+  box-shadow: 0 12px 24px rgba(166, 111, 61, 0.18);
+}
+
+.services-hero__button.button--profile:hover,
+.section-header__button.button--profile:hover {
+  background: linear-gradient(135deg, #b67745 0%, #8f5a2f 100%);
+  border-color: rgba(143, 90, 47, 0.2);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(166, 111, 61, 0.24);
+  transform: translateY(-2px);
+}
+
 .services-hero__media {
   width: 100%;
 }
