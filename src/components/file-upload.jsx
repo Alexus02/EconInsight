@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { requestPresignedUpload, saveUploadedFileMetadata } from '../lib/fileApi'
 import { validateResearchFile } from '../lib/fileRules'
 import PDFPreview from './pdf-preview'
+import ImageWithSkeleton from './ImageWithSkeleton'
 import '../styles/file-upload.css'
 
 function FileUpload({
@@ -173,7 +174,7 @@ function FileUpload({
                 {file?.type === 'application/pdf' ? (
                   <PDFPreview title={file.name} url={previewUrl} className="upload-preview__pdf" />
                 ) : file && file.type.startsWith('image/') ? (
-                  <img src={previewUrl} alt={file.name} className="upload-preview__image" loading="lazy" decoding="async" />
+                  <ImageWithSkeleton src={previewUrl} alt={file.name} className="upload-preview__image" />
                 ) : (
                   <div className="upload-preview__fallback">
                     <p>{file?.name}</p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchPublishedPosts } from '../../../lib/fileApi'
+import ImageWithSkeleton from '../../../components/ImageWithSkeleton'
 import './blog.css'
 
 const Blog = () => {
@@ -54,12 +55,7 @@ const Blog = () => {
                   <Link to={`/posts/${post.id}`} className="thread-post__link">
                     {post.coverImageUrl && (
                       <div className="thread-post__image">
-                        <img
-                          src={post.coverImageUrl}
-                          alt={post.title}
-                          loading="lazy"
-                          decoding="async"
-                        />
+                        <ImageWithSkeleton src={post.coverImageUrl} alt={post.title} />
                       </div>
                     )}
                     <div className="thread-post__header">

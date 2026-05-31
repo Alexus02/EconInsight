@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchPublishedPosts } from '../../../lib/fileApi'
 import SkeletonLoader from '../../../components/SkeletonLoader'
+import ImageWithSkeleton from '../../../components/ImageWithSkeleton'
 import './library.css'
 
 const Research = () => {
@@ -97,13 +98,7 @@ const Research = () => {
               <Link key={post.id} to={`/research/${post.id}`} className="research-card">
                 <div className="research-card__media">
                   {post.coverImageUrl ? (
-                    <img
-                      src={post.coverImageUrl}
-                      alt={post.title}
-                      className="research-card__image"
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <ImageWithSkeleton src={post.coverImageUrl} alt={post.title} className="research-card__image" />
                   ) : (
                     <div className="placeholder-image placeholder-small">
                       <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">

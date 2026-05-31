@@ -4,6 +4,7 @@ import { fetchPublishedPostById, recordView } from '../../../lib/fileApi'
 import '../research/article-viewer.css'
 import PdfActionsCard from '../../../components/PdfActionsCard'
 import CoverPhoto from '../../../components/CoverPhoto'
+import ImageWithSkeleton from '../../../components/ImageWithSkeleton'
 
 function Post() {
   const { id } = useParams()
@@ -68,11 +69,9 @@ function Post() {
                   title={post.title}
                 />
               ) : post.articleFileUrl.match(/\.(jpe?g|png|gif)$/i) ? (
-                <img
+                <ImageWithSkeleton
                   src={post.articleFileUrl}
                   alt={post.title}
-                  loading="lazy"
-                  decoding="async"
                   style={{ width: '100%', borderRadius: '16px' }}
                 />
               ) : (

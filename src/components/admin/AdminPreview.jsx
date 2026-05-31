@@ -1,5 +1,6 @@
 import React from 'react'
 import PDFPreview from '../pdf-preview'
+import ImageWithSkeleton from '../ImageWithSkeleton'
 
 function AdminPreview({
   isOpen,
@@ -43,7 +44,7 @@ function AdminPreview({
                 {selectedFile?.contentType === 'application/pdf' || selectedDocUrl.endsWith('.pdf') ? (
                   <PDFPreview title={selectedFile?.filename || 'preview'} url={selectedDocUrl} className="admin-preview-card__pdf" />
                 ) : selectedFile?.contentType?.startsWith('image/') || /\.(jpe?g|png|gif)$/i.test(selectedDocUrl) ? (
-                  <img src={selectedDocUrl} alt={selectedFile?.filename || 'preview'} className="admin-preview-card__image" loading="lazy" decoding="async" />
+                  <ImageWithSkeleton src={selectedDocUrl} alt={selectedFile?.filename || 'preview'} className="admin-preview-card__image" />
                 ) : (
                   <div className="admin-preview-card__fallback">{selectedFile?.filename || selectedDocLabel || 'Selected file'}</div>
                 )}

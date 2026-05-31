@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import NotificationPopup from '../../../components/NotificationPopup'
+import ImageWithSkeleton from '../../../components/ImageWithSkeleton'
 import { createContactSubmission } from '../../../lib/fileApi'
 import './about.css'
 import aboutHero from '../../../assets/econInshigt.webp'
@@ -135,7 +136,7 @@ const About = () => {
         </div>
 
         <div className="hero__visual hero__visual--portrait" aria-label="Team portrait placeholder">
-          <img src={aboutHero} alt="Hero image" className='about-hero' loading="lazy" decoding="async" />
+          <ImageWithSkeleton src={aboutHero} alt="Hero image" className="about-hero" />
         </div>
       </section>
 

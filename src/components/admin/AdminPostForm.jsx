@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import FileUpload from '../file-upload'
 import PDFPreview from '../pdf-preview'
+import ImageWithSkeleton from '../ImageWithSkeleton'
 import '../../styles/adminStyles/admin-post-form-pages.css'
 
 const AdminPostForm = ({
@@ -193,7 +194,7 @@ const AdminPostForm = ({
                     .filter((f) => f.contentType?.startsWith('image/'))
                     .map((f) => (
                       <div key={f.id || f.storageKey} className="image-thumbnail">
-                        <img src={f.url} alt={f.filename} loading="lazy" decoding="async" />
+                          <ImageWithSkeleton src={f.url} alt={f.filename} />
                         <span className="image-name">{f.filename}</span>
                       </div>
                     ))}
@@ -235,7 +236,7 @@ const AdminPostForm = ({
 
                 {selectedImageUrls[0] ? (
                   <div className="cover-photo-preview">
-                    <img src={selectedImageUrls[0]} alt="Cover preview" className="cover-photo-preview__image" loading="lazy" decoding="async" />
+                    <ImageWithSkeleton src={selectedImageUrls[0]} alt="Cover preview" className="cover-photo-preview__image" />
                     <button type="button" className="cover-photo-preview__remove" onClick={() => onRemoveCoverImage()}>
                       ✕ Remove
                     </button>
@@ -322,7 +323,7 @@ const AdminPostForm = ({
             <div className="preview-card">
               {selectedImageUrls[0] && (
                 <div className="preview-card__image">
-                  <img src={selectedImageUrls[0]} alt={title} loading="lazy" decoding="async" />
+                  <ImageWithSkeleton src={selectedImageUrls[0]} alt={title} />
                 </div>
               )}
               <div className="preview-card__content">
@@ -410,7 +411,7 @@ const AdminPostForm = ({
                       <div className="preview-carousel">
                         <div className="carousel-main">
                           {selectedImageUrls[0] ? (
-                            <img src={selectedImageUrls[0]} alt="Carousel" loading="lazy" decoding="async" />
+                            <ImageWithSkeleton src={selectedImageUrls[0]} alt="Carousel" />
                           ) : (
                             <div className="carousel-empty">Image</div>
                           )}
@@ -419,7 +420,7 @@ const AdminPostForm = ({
                           <div className="carousel-thumbnails">
                             {selectedImageUrls.slice(0, 3).map((url, idx) => (
                               <div key={idx} className="carousel-thumb">
-                                <img src={url} alt={`Thumb ${idx}`} loading="lazy" decoding="async" />
+                                <ImageWithSkeleton src={url} alt={`Thumb ${idx}`} />
                               </div>
                             ))}
                             {selectedDocUrl && (
@@ -435,7 +436,7 @@ const AdminPostForm = ({
                     <div className="preview-layout-alternate">
                       {selectedImageUrls[0] && (
                         <div className="preview-item-image">
-                          <img src={selectedImageUrls[0]} alt="Content" loading="lazy" decoding="async" />
+                          <ImageWithSkeleton src={selectedImageUrls[0]} alt="Content" />
                         </div>
                       )}
                       <div className="preview-item-text">
@@ -443,7 +444,7 @@ const AdminPostForm = ({
                       </div>
                       {selectedImageUrls[1] && (
                         <div className="preview-item-image">
-                          <img src={selectedImageUrls[1]} alt="Content 2" loading="lazy" decoding="async" />
+                          <ImageWithSkeleton src={selectedImageUrls[1]} alt="Content 2" />
                         </div>
                       )}
                     </div>

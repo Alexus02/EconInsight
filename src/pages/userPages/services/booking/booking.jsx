@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { createBooking } from '../../../../lib/fileApi'
 import NotificationPopup from '../../../../components/NotificationPopup'
+import ImageWithSkeleton from '../../../../components/ImageWithSkeleton'
 import './booking.css'
 import bookingHero from '../../../../assets/consultation.jpg'
 
@@ -117,7 +118,7 @@ function Booking() {
         </div>
 
         <div className="booking-hero__media">
-          <img src={bookingHero} alt="Consultation planning" className="booking-hero__image" loading="lazy" decoding="async" />
+          <ImageWithSkeleton src={bookingHero} alt="Consultation planning" className="booking-hero__image" />
         </div>
       </section>
 

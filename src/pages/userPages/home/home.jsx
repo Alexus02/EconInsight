@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchPublishedPosts } from '../../../lib/fileApi'
 import SkeletonLoader from '../../../components/SkeletonLoader'
+import ImageWithSkeleton from '../../../components/ImageWithSkeleton'
 import './home.css'
 import heroImage from '../../../assets/hero-money.jpg'
 import secondaryImage from '../../../assets/econInsight.jpg'
@@ -53,7 +54,7 @@ const Home = () => {
           </div>
         </div>
         <div className="hero__media">
-          <img src={heroImage} alt="EconInsight" className="hero__image" loading="lazy" decoding="async" />
+          <ImageWithSkeleton src={heroImage} alt="EconInsight" className="hero__image" />
         </div>
       </section>
 
@@ -78,7 +79,7 @@ const Home = () => {
               <Link key={post.id} to={`/posts/${post.id}`} className="research-card">
                 <div className="research-card__media">
                   {post.coverImageUrl ? (
-                    <img src={post.coverImageUrl} alt={post.title} className="research-card__image" />
+                    <ImageWithSkeleton src={post.coverImageUrl} alt={post.title} className="research-card__image" />
                   ) : (
                     <div className="placeholder-image placeholder-small">
                       <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
@@ -109,7 +110,7 @@ const Home = () => {
  
       <section className="why-choose-us">
         <div className="why-choose-us__media">
-          <img src={secondaryImage} alt="Why Choose EconInsight" className="why-choose-us__image" loading="lazy" decoding="async" />
+          <ImageWithSkeleton src={secondaryImage} alt="Why Choose EconInsight" className="why-choose-us__image" />
         </div>
         <div className="why-choose-us__content">
           <h2>Why Choose EconInsight</h2>
@@ -132,7 +133,7 @@ const Home = () => {
         <div className="services-preview-grid">
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg1} alt="Economic Research" className='home-service-card__image' loading="lazy" decoding="async" />
+              <ImageWithSkeleton src={serviceImg1} alt="Economic Research" className="home-service-card__image" />
             </div>
             <div className='home-service-card__description'>
             <h3>Economic Research</h3>
@@ -141,7 +142,7 @@ const Home = () => {
                     </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg2} alt="Market Intelligence" className='home-service-card__image' loading="lazy" decoding="async" />
+              <ImageWithSkeleton src={serviceImg2} alt="Market Intelligence" className="home-service-card__image" />
             </div>
             <div className='home-service-card__description'>
             <h3>Market Intelligence</h3>
@@ -150,7 +151,7 @@ const Home = () => {
           </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg3} alt="Policy Analysis" className='home-service-card__image' loading="lazy" decoding="async" />
+              <ImageWithSkeleton src={serviceImg3} alt="Policy Analysis" className="home-service-card__image" />
                 </div>
             <div className='home-service-card__description'>
             <h3>Policy Analysis</h3>
@@ -159,7 +160,7 @@ const Home = () => {
           </div>
           <div className="home-service-card">
             <div className="home-service-card__icon">
-              <img src={serviceImg4} alt="Strategic Consulting" className='home-service-card__image' loading="lazy" decoding="async" />
+              <ImageWithSkeleton src={serviceImg4} alt="Strategic Consulting" className="home-service-card__image" />
             </div>
             <div className='home-service-card__description'>
             <h3>Strategic Consulting</h3>
